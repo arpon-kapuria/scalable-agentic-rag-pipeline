@@ -61,53 +61,64 @@
 scalable-agentic-rag/
 ├── libs/
 │   └── utils/
-│       ├── backoff.py            # retry mechanism using exponential backoff for transient failures
-│       ├── document_parsing.py   # dynamic handler to parse different documents
-│       ├── ids.py                # generate unique IDs for chat sessions, files, and OpenTelemetry traces
-│       └── timing.py             # measure execution time of functions for performance monitoring
+│       ├── backoff.py                    # retry mechanism using exponential backoff for transient failures
+│       ├── document_parsing.py           # dynamic handler to parse different documents
+│       ├── ids.py                        # generate unique IDs for chat sessions, files, and OpenTelemetry traces
+│       └── timing.py                     # measure execution time of functions for performance monitoring
 │
 ├── models/
 │   ├── embeddings/
-│   │   └── bge-m3.yaml           # configuration for embedding model (bge-m3)
+│   │   └── bge-m3.yaml                   # configuration for embedding model (bge-m3)
 │   │
 │   ├── llm/
-│   │   ├── llama-7b.yaml         # configuration for llama-3-7b-Instruct (ligher tasks)
-│   │   └── llama-70b.yaml        # configuration for llama-3-70b-Instruct (heavy tasks)
+│   │   ├── llama-7b.yaml                 # configuration for llama-3-7b-Instruct (ligher tasks)
+│   │   └── llama-70b.yaml                # configuration for llama-3-70b-Instruct (heavy tasks)
 │   │
 │   └── rerankers/
-│       └── bge-reranker.yaml     # configuration for reranker (bge-m3)
+│       └── bge-reranker.yaml             # configuration for reranker (bge-m3)
 │
 ├── pipelines/
 │   ├── ingestion/
 │   │   ├── chunking/     
-│   │   │   ├── metadata.py       # enrich chunk metadata and create hashes for deduplication
-│   │   │   └── splitter.py       # text splitting and chunking logic
+│   │   │   ├── metadata.py               # enrich chunk metadata and create hashes for deduplication
+│   │   │   └── splitter.py               # text splitting and chunking logic
 │   │   │
 │   │   ├── embedding/       
-│   │   │   └── compute.py        # Ray worker that batches text and generates embeddings
+│   │   │   └── compute.py                # Ray worker that batches text and generates embeddings
 │   │   │
 │   │   ├── graph/       
-│   │   │   ├── schema.py         # defines allowed node and relationship schema for the knowledge graph
-│   │   │   └── extractor.py      # extracts entities and relationships from text using an LLM
+│   │   │   ├── schema.py                 # defines allowed node and relationship schema for the knowledge graph
+│   │   │   └── extractor.py              # extracts entities and relationships from text using an LLM
 │   │   │
 │   │   ├── indexing/     
-│   │   │   ├── qdrant.py         # writes embedding vectors to the Qdrant vector database
-│   │   │   └── neo4j.py          # writes knowledge graph nodes and relationships to Neo4j
+│   │   │   ├── qdrant.py                 # writes embedding vectors to the Qdrant vector database
+│   │   │   └── neo4j.py                  # writes knowledge graph nodes and relationships to Neo4j
 │   │   │
 │   │   ├── loaders/
-│   │   │   ├── docx.py           # parses Word documents and extracts text
-│   │   │   ├── html.py           # parses HTML content and extracts clean text
-│   │   │   └── pdf.py            # parses PDF files using layout-aware extraction
+│   │   │   ├── docx.py                   # parses Word documents and extracts text
+│   │   │   ├── html.py                   # parses HTML content and extracts clean text
+│   │   │   └── pdf.py                    # parses PDF files using layout-aware extraction
 │   │   │
-│   │   ├── config.yaml           # configuration for ingestion pipeline
-│   │   └── main.py               # orchestrates the distributed ingestion pipeline using Ray
+│   │   ├── config.yaml                   # configuration for ingestion pipeline
+│   │   └── main.py                       # orchestrates the distributed ingestion pipeline using Ray
 │   │
 │   └── jobs/
-│       ├── ray_job.yaml          # [Manual dev/testing] Ray job specification used by the Ray Job Submission API
-│       └── s3_event_handler.py   # [Automatic prod] Lambda handler that listens for S3 uploads and submits ingestion jobs to Ray
+│       ├── ray_job.yaml                  # [Manual dev/testing] Ray job specification used by the Ray Job Submission API
+│       └── s3_event_handler.py           # [Auto prod] Lambda handler that listens for S3 uploads and submits ingestion jobs to Ray
 │
 ├── scripts/
-│   └── bulk_upload_s3.py         # high-performance parallel uploader to push datasets to S3
+│   └── bulk_upload_s3.py                 # high-performance parallel uploader to push datasets to S3
+│
+├── services/
+│   ├── api/
+│   │   ├── app/
+│   │   │   ├── clients/
+│   │   │   │   ├── ray_embed.py          # async client for Ray embedding service
+│   │   │   │   ├── ray_llm.py            # async HTTP client to call Ray LLM service
+│   │   │   │
+│   │   │   ├── models/       
+│   │   │   │   ├── llm_engine.py         # deploys an LLM inference service using Ray Serve and vLLM
+│   │   │   │   └── embedding_engine.py   # deploys embedding service using Ray Serve and sentence_transformers
 │
 ├── .env
 ├── .gitignore

@@ -1,6 +1,6 @@
 # Workflow
 
-- [ ] Missing packages - 
+- [ ] Missing packages - vllm, PyTorch
 
 
 ### Dataset Preparation:
@@ -23,6 +23,7 @@
 - [x] `Makefile` to automate common tasks such as building, testing and deploying the application
 - [x] `docker-compose.yaml` file to define all the services required to run the entire rag pipeline locally using Docker containers
 - [x] Create shared utilies files `(ids.py, timing.py, backoff.py, document_parsing.py)`
+- [ ] Setup configurations file in `services/api/app/config.py` file
 
 > `docker-compose.yaml` file pulls and runs the 5 services `(pgsql, redis, qdrant, neo4j, minio)` and uv runs the fastapi app. It simulates everything locally. No need to install those services.
 
@@ -44,8 +45,9 @@
 
 ### AI Compute Layer
 - [x] Setup Ray Serve to host models as independent microservices that can auto scale based on GPU availability and traffic
-- [x] Keep separate model configuration files for chat models, embedding models and rerankers in `models` folder
-- [ ] Serve AI models with vLLM & Ray Serve, 
+- [x] Keep separate model configuration files for chat models, embedding models and rerankers in `services/api/app/models/` folder
+- [x] Serve AI models with `vLLM` and embedding models & rerankers with `sentence_transformers`
+- [x] Implement an async HTTP client used by the API server to communicate with the Ray-Serve LLM `ray_llm.py` & Embedding service `ray_embed.py`
 
 
 

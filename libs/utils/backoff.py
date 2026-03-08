@@ -6,6 +6,7 @@ import logging
 import functools
 import random
 import asyncio
+import httpx
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +22,7 @@ def exponential_backoff(max_retries: int = 3, base_delay: float = 1.0, max_delay
             while True:
                 try:
                     return await func(*args, **kwargs)
-                except Exception as e:
+                except httpx.HTTPError as e:
                     if retries >= max_retries:
                         logger.error(f"Max retries reached for {func.__name__}: {e}")
                         raise e

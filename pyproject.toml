@@ -6,7 +6,8 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "boto3>=1.42.63",
-    "tqdm>=4.67.3"
+    "tqdm>=4.67.3",
+    "httpx>=0.28.1"
 ]
 
 [dependency-groups]
