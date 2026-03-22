@@ -7,13 +7,15 @@ requires-python = ">=3.13"
 dependencies = [
     "boto3>=1.42.63",
     "tqdm>=4.67.3",
-    "httpx>=0.28.1"
+    "httpx>=0.28.1",
 ]
 
 [dependency-groups]
 api = [
     "fastapi>=0.135.1",
     "pydantic>=2.12.5",
+    "pydantic-settings>=2.13.1",
+    "pyjwt>=2.12.1",
     "uvicorn[standard]>=0.41.0",
 ]
 dev = [
@@ -30,6 +32,12 @@ ingestion = [
     "qdrant-client>=1.17.0",
     "sentence-transformers>=5.2.3",
     "unstructured[docx,pdf]>=0.21.5",
+]
+observability = [
+    "opentelemetry-api>=1.40.0",
+    "opentelemetry-exporter-otlp>=1.40.0",
+    "opentelemetry-instrumentation-fastapi>=0.61b0",
+    "opentelemetry-sdk>=1.40.0",
 ]
 ray = [
     "ray[default]>=2.54.0",

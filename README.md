@@ -60,6 +60,9 @@
 ```
 scalable-agentic-rag/
 ├── libs/
+│   └── schemas/
+│       ├── chat.py                       # pydantic data models (schemas) used across the RAG chat system
+│
 │   └── utils/
 │       ├── backoff.py                    # retry mechanism using exponential backoff for transient failures
 │       ├── document_parsing.py           # dynamic handler to parse different documents
@@ -84,7 +87,7 @@ scalable-agentic-rag/
 │   │   │   └── splitter.py               # text splitting and chunking logic
 │   │   │
 │   │   ├── embedding/       
-│   │   │   └── compute.py                # Ray worker that batches text and generates embeddings
+│   │   │   └── compute.py                # ray worker that batches text and generates embeddings
 │   │   │
 │   │   ├── graph/       
 │   │   │   ├── schema.py                 # defines allowed node and relationship schema for the knowledge graph
@@ -104,6 +107,7 @@ scalable-agentic-rag/
 │   │
 │   └── jobs/
 │       ├── ray_job.yaml                  # [Manual dev/testing] Ray job specification used by the Ray Job Submission API
+│       ├── requirements-ray.txt          # [Generate manually] Contains the dependencies needed for the ingestion job
 │       └── s3_event_handler.py           # [Auto prod] Lambda handler that listens for S3 uploads and submits ingestion jobs to Ray
 │
 ├── scripts/
@@ -112,6 +116,9 @@ scalable-agentic-rag/
 ├── services/
 │   ├── api/
 │   │   ├── app/
+│   │   │   ├── auth/
+│   │   │   │   └── jwt.py                # handle JWT authentication for authorized uses of GPU
+│   │   │   │
 │   │   │   ├── clients/
 │   │   │   │   ├── ray_embed.py          # async client for Ray embedding service
 │   │   │   │   ├── ray_llm.py            # async HTTP client to call Ray LLM service
@@ -119,6 +126,13 @@ scalable-agentic-rag/
 │   │   │   ├── models/       
 │   │   │   │   ├── llm_engine.py         # deploys an LLM inference service using Ray Serve and vLLM
 │   │   │   │   └── embedding_engine.py   # deploys embedding service using Ray Serve and sentence_transformers
+│   │   │   │
+│   │   │   ├── config.py                 # validates that all our database URLs and API keys exist at startup
+│   │   │   ├── logging.py                # custom structured JSON logging system
+│   │   │   ├── observability.py          # observability setup module that wires OpenTelemetry tracing into a FastAPI app
+
+│   │   │   
+│   │   ├── requirements.txt
 │
 ├── .env
 ├── .gitignore
