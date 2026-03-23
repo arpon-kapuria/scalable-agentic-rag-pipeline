@@ -119,9 +119,15 @@ scalable-agentic-rag/
 │   │   │   ├── auth/
 │   │   │   │   └── jwt.py                # handle JWT authentication for authorized uses of GPU
 │   │   │   │
+│   │   │   ├── cache/
+│   │   │   │   ├── redis.py              # cache and rate limiting
+│   │   │   │   └── semantic.py           # 
+│   │   │   │
 │   │   │   ├── clients/
+│   │   │   │   ├── neo4j.py              # async Neo4j graph database client for executing Cypher queries
+│   │   │   │   ├── qdrant.py             # async Qdrant vector database client for semantic search
 │   │   │   │   ├── ray_embed.py          # async client for Ray embedding service
-│   │   │   │   ├── ray_llm.py            # async HTTP client to call Ray LLM service
+│   │   │   │   └── ray_llm.py            # async HTTP client to call Ray LLM service
 │   │   │   │
 │   │   │   ├── models/       
 │   │   │   │   ├── llm_engine.py         # deploys an LLM inference service using Ray Serve and vLLM

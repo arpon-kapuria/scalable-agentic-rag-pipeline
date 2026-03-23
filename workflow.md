@@ -1,6 +1,6 @@
 # Workflow
 
-- [ ] Missing packages - vllm, PyTorch
+- [ ] Missing packages - vllm, PyTorch, redis, 
 
 
 ### Dataset Preparation:
@@ -45,7 +45,7 @@
 
 ### AI Compute Layer
 - [x] Setup Ray Serve to host models as independent microservices that can auto scale based on GPU availability and traffic
-- [x] Keep separate model configuration files for chat models, embedding models and rerankers in `services/api/app/models/` folder
+- [x] Keep separate model configuration files for chat models `(llama-7b, llama-70b)`, embedding models `(bge-m3)` and reranker `(bge-reranker)` in `models` folder and deployment services in `services/api/app/models/` folder
 - [x] Serve AI models with `vLLM` and embedding models & rerankers with `sentence_transformers`
 - [x] Implement async HTTP clients used by the API server to communicate with the Ray-Serve LLM `ray_llm.py` & Embedding service `ray_embed.py`
 
@@ -64,6 +64,9 @@
 - [x] Enable distributed tracing in `services/api/app/observability.py`. This tracks a request flow from the API to Redis, then to the Vector DB, and finally to the Ray Cluster. 
 - [x] Implement JWT (JSON Web Token) validation in `services/api/app/auth/jwt.py`. This middleware make sure that only authorized users can query our expensive GPU resources.
 - [x] Define the data schemas in `libs/schemas/chat.py`. This ensures the frontend sends exactly what we expect and receives a consistent response structure.
+- [x] Implement a singleton Redis connection manager in `services/api/app/cache/redis.py` for cache and rate limiting. It prevents *"Too many connections"* error.
+- [x] Implement an async Qdrant client in `services/api/app/clients/qdrant.py` and an async Neo4j client in `services/api/app/clients/neo4j.py`, both managing connection pools for non-blocking vector search and Cypher-based graph traversal respectively.
+- [ ] 
 
 
 > **Why JSON logging over Standard text logging?**
