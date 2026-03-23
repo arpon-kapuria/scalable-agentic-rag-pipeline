@@ -1,6 +1,6 @@
 # Workflow
 
-- [ ] Missing packages - vllm, PyTorch, redis, 
+- [ ] Missing packages - vllm, PyTorch, redis, sqlalchemy
 
 
 ### Dataset Preparation:
@@ -66,7 +66,9 @@
 - [x] Define the data schemas in `libs/schemas/chat.py`. This ensures the frontend sends exactly what we expect and receives a consistent response structure.
 - [x] Implement a singleton Redis connection manager in `services/api/app/cache/redis.py` for cache and rate limiting. It prevents *"Too many connections"* error.
 - [x] Implement an async Qdrant client in `services/api/app/clients/qdrant.py` and an async Neo4j client in `services/api/app/clients/neo4j.py`, both managing connection pools for non-blocking vector search and Cypher-based graph traversal respectively.
-- [ ] 
+- [x] Define the SQLAlchemy ORM schema in `services/api/app/memory/models.py` to model the chat_history table for persisting the full conversation history to PostgreSQL.
+- [x] Implement the CRUD logic in `services/api/app/memory/postgres.py`. We fetch the history in reverse chronological order to feed the most recent context to the LLM.
+- [x] To lower the latency and reduce llm calls, implement sementic cache using Qdrant vector similarity in `services/api/app/cache/semantic.py`. If a user asks "What is Kubernetes?" and another asks "Explain K8s", the embedding similarity will be high.
 
 
 > **Why JSON logging over Standard text logging?**

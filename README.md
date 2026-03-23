@@ -108,7 +108,7 @@ scalable-agentic-rag/
 │   └── jobs/
 │       ├── ray_job.yaml                  # [Manual dev/testing] Ray job specification used by the Ray Job Submission API
 │       ├── requirements-ray.txt          # [Generate manually] Contains the dependencies needed for the ingestion job
-│       └── s3_event_handler.py           # [Auto prod] Lambda handler that listens for S3 uploads and submits ingestion jobs to Ray
+│       └── s3_event_handler.py           # [Auto prod] Lambda handler, listens for S3 uploads and submits ingestion jobs to Ray
 │
 ├── scripts/
 │   └── bulk_upload_s3.py                 # high-performance parallel uploader to push datasets to S3
@@ -120,8 +120,8 @@ scalable-agentic-rag/
 │   │   │   │   └── jwt.py                # handle JWT authentication for authorized uses of GPU
 │   │   │   │
 │   │   │   ├── cache/
-│   │   │   │   ├── redis.py              # cache and rate limiting
-│   │   │   │   └── semantic.py           # 
+│   │   │   │   ├── redis.py              # singleton Redis client for cache and rate limiting
+│   │   │   │   └── semantic.py           # semantic caching to avoid unnecessary llm calls 
 │   │   │   │
 │   │   │   ├── clients/
 │   │   │   │   ├── neo4j.py              # async Neo4j graph database client for executing Cypher queries
@@ -129,13 +129,17 @@ scalable-agentic-rag/
 │   │   │   │   ├── ray_embed.py          # async client for Ray embedding service
 │   │   │   │   └── ray_llm.py            # async HTTP client to call Ray LLM service
 │   │   │   │
+│   │   │   ├── memory/       
+│   │   │   │   ├── models.py             # sqlalchemy orm model for persisting chat history to rdbms
+│   │   │   │   └── postgres.py           # async pgsql CRUD for conversation history
+│   │   │   │
 │   │   │   ├── models/       
 │   │   │   │   ├── llm_engine.py         # deploys an LLM inference service using Ray Serve and vLLM
 │   │   │   │   └── embedding_engine.py   # deploys embedding service using Ray Serve and sentence_transformers
 │   │   │   │
 │   │   │   ├── config.py                 # validates that all our database URLs and API keys exist at startup
 │   │   │   ├── logging.py                # custom structured JSON logging system
-│   │   │   ├── observability.py          # observability setup module that wires OpenTelemetry tracing into a FastAPI app
+│   │   │   ├── observability.py          # observability module that wires OpenTelemetry tracing into a FastAPI app
 
 │   │   │   
 │   │   ├── requirements.txt
