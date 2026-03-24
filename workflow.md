@@ -1,6 +1,6 @@
 # Workflow
 
-- [ ] Missing packages - vllm, PyTorch, redis, sqlalchemy
+- [ ] Missing packages - vllm, PyTorch, redis, sqlalchemy, langgraph
 
 
 ### Dataset Preparation:
@@ -69,6 +69,7 @@
 - [x] Define the SQLAlchemy ORM schema in `services/api/app/memory/models.py` to model the chat_history table for persisting the full conversation history to PostgreSQL.
 - [x] Implement the CRUD logic in `services/api/app/memory/postgres.py`. We fetch the history in reverse chronological order to feed the most recent context to the LLM.
 - [x] To lower the latency and reduce llm calls, implement sementic cache using Qdrant vector similarity in `services/api/app/cache/semantic.py`. If a user asks "What is Kubernetes?" and another asks "Explain K8s", the embedding similarity will be high.
+- [x] Implement the LangGraph agent pipeline in `services/api/app/agents/` — comprising a **planner** node that rewrites the query and routes to retrieval, direct answer, or tool use; a **retriever** node that runs Qdrant vector search and Neo4j graph traversal concurrently; a **responder** node that synthesizes the final answer with source citations; and a **tool** node for calculator and graph search execution — all wired together in `graph.py` with conditional routing based on planner decisions.
 
 
 > **Why JSON logging over Standard text logging?**

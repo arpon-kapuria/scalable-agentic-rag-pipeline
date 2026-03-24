@@ -116,6 +116,16 @@ scalable-agentic-rag/
 ├── services/
 │   ├── api/
 │   │   ├── app/
+│   │   │   ├── agents/
+│   │   │   │   ├── nodes/
+│   │   │   │   │   ├── planner.py        # first node in the LangGraph that decides what action to take
+│   │   │   │   │   ├── responder.py      # final node that synthesizes retrieved documents into a coherent answer
+│   │   │   │   │   ├── retriever.py      # retriever node, that fetches context before the LLM generates an answer
+│   │   │   │   │   └── tool.py           # tool node, handles the "tool_use" branch from the planner
+│   │   │   │   │
+│   │   │   │   ├── graph.py              # graph definition, that connects all nodes into a runnable agent
+│   │   │   │   └── state.py              # shared state object that flows between nodes in the LangGraph agent
+│   │   │   │
 │   │   │   ├── auth/
 │   │   │   │   └── jwt.py                # handle JWT authentication for authorized uses of GPU
 │   │   │   │
