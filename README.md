@@ -139,6 +139,10 @@ scalable-agentic-rag/
 │   │   │   │   ├── ray_embed.py          # async client for Ray embedding service
 │   │   │   │   └── ray_llm.py            # async HTTP client to call Ray LLM service
 │   │   │   │
+│   │   │   ├── enhancers/       
+│   │   │   │   ├── hyde.py               # advanced rag technique (hyde) to improve accuracy
+│   │   │   │   └── query_rewritter.py    # query enhancer to standardize the original query
+│   │   │   │
 │   │   │   ├── memory/       
 │   │   │   │   ├── models.py             # sqlalchemy orm model for persisting chat history to rdbms
 │   │   │   │   └── postgres.py           # async pgsql CRUD for conversation history
@@ -150,8 +154,8 @@ scalable-agentic-rag/
 │   │   │   ├── config.py                 # validates that all our database URLs and API keys exist at startup
 │   │   │   ├── logging.py                # custom structured JSON logging system
 │   │   │   ├── observability.py          # observability module that wires OpenTelemetry tracing into a FastAPI app
-
-│   │   │   
+│   │   │  
+│   │   ├── main.py                       # agentic application entry point 
 │   │   ├── requirements.txt
 │
 ├── .env

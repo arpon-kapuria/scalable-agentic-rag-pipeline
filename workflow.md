@@ -70,6 +70,8 @@
 - [x] Implement the CRUD logic in `services/api/app/memory/postgres.py`. We fetch the history in reverse chronological order to feed the most recent context to the LLM.
 - [x] To lower the latency and reduce llm calls, implement sementic cache using Qdrant vector similarity in `services/api/app/cache/semantic.py`. If a user asks "What is Kubernetes?" and another asks "Explain K8s", the embedding similarity will be high.
 - [x] Implement the LangGraph agent pipeline in `services/api/app/agents/` — comprising a **planner** node that rewrites the query and routes to retrieval, direct answer, or tool use; a **retriever** node that runs Qdrant vector search and Neo4j graph traversal concurrently; a **responder** node that synthesizes the final answer with source citations; and a **tool** node for calculator and graph search execution — all wired together in `graph.py` with conditional routing based on planner decisions.
+- [x] Implement query enhancement in `services/api/app/enhancers/` using *HyDE* for improved retrieval accuracy and coreference resolution to rewrite ambiguous queries into standalone search queries before hitting the retriever.
+- [x] Implement the FastAPI application entrypoint in `services/api/main.py` managing lifecycle events — initializing database connections on startup and closing them gracefully on shutdown.
 
 
 > **Why JSON logging over Standard text logging?**
