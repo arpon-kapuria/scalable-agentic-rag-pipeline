@@ -1,0 +1,16 @@
+# It's a Kubernetes firewall rule that says — "the sandbox container is allowed to receive requests, but can never send anything out."
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: sandbox-deny-egress
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: sandbox-service
+  policyTypes:
+  - Egress
+  # Deny ALL egress traffic by default.
+  # The sandbox cannot call out to the internet or other services.
+  egress: []

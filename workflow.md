@@ -74,5 +74,10 @@
 - [x] Implement the FastAPI application entrypoint in `services/api/main.py` managing lifecycle events — initializing database connections on startup and closing them gracefully on shutdown.
 
 
+### Tools & Sandbox
+- [x] Implement a hardened sandbox microservice in `services/sandbox/` — a isolated Docker container running a Flask execution server with a non-root user, CPU/RAM resource limits, and a Kubernetes NetworkPolicy blocking all egress traffic, ensuring LLM-generated code cannot exfiltrate data or affect the host system.
+- [x]  Implement the sandbox client in `services/api/app/tools/sandbox.py` that sends LLM-generated code to the sandbox over HTTP.
+
+
 > **Why JSON logging over Standard text logging?**
 > Standard text logs are useless at scale when you have 50 pods running. JSON logs allow us to query logs like a database, filtering by error levels or specific request IDs to trace bugs across distributed nodes.

@@ -151,12 +151,21 @@ scalable-agentic-rag/
 │   │   │   │   ├── llm_engine.py         # deploys an LLM inference service using Ray Serve and vLLM
 │   │   │   │   └── embedding_engine.py   # deploys embedding service using Ray Serve and sentence_transformers
 │   │   │   │
+│   │   │   ├── tools/       
+│   │   │   │   ├── sandbox.py            # api client for sandbox communication
+│   │   │   │
 │   │   │   ├── config.py                 # validates that all our database URLs and API keys exist at startup
 │   │   │   ├── logging.py                # custom structured JSON logging system
-│   │   │   ├── observability.py          # observability module that wires OpenTelemetry tracing into a FastAPI app
+│   │   │   └── observability.py          # observability module that wires OpenTelemetry tracing into a FastAPI app
 │   │   │  
 │   │   ├── main.py                       # agentic application entry point 
-│   │   ├── requirements.txt
+│   │   └── requirements.txt
+│   │
+│   ├── sandbox/
+│   │   ├── Dockerfile                    # minimal hardened container that runs the sandbox server as a non root user
+│   │   ├── limits.yaml                   # resource limits configuration for the sandbox
+│   │   ├── network-policy.yaml           # k8s firewall against data exfiltration
+│   │   └── runner.py                     # flask server (core of the sandbox) that safely runs the untrusted code
 │
 ├── .env
 ├── .gitignore
