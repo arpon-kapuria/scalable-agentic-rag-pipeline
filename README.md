@@ -151,8 +151,12 @@ scalable-agentic-rag/
 │   │   │   │   ├── llm_engine.py         # deploys an LLM inference service using Ray Serve and vLLM
 │   │   │   │   └── embedding_engine.py   # deploys embedding service using Ray Serve and sentence_transformers
 │   │   │   │
-│   │   │   ├── tools/       
+│   │   │   ├── tools/  
+│   │   │   │   ├── calculator.py         # safe math expression evaluator using AST parsing
+│   │   │   │   ├── graph_search.py       # entity-aware Neo4j search with Cypher injection prevention
 │   │   │   │   ├── sandbox.py            # api client for sandbox communication
+│   │   │   │   ├── vector_search.py      # document retrieval tool exposing Qdrant semantic search
+│   │   │   │   ├── web_search.py         # real-time external knowledge retrieval via Tavily API
 │   │   │   │
 │   │   │   ├── config.py                 # validates that all our database URLs and API keys exist at startup
 │   │   │   ├── logging.py                # custom structured JSON logging system

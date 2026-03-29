@@ -2,7 +2,7 @@ import logging
 from services.api.app.agents.state import AgentState
 from services.api.app.tools.calculator import calculate
 from services.api.app.tools.graph_search import search_graph_tool
-# from services.api.app.tools.web_search import web_search (Future)
+from services.api.app.tools.web_search import web_search_tool
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +32,10 @@ async def tool_node(state: AgentState) -> dict:
     elif tool_name == "graph_search":
         logger.info(f"Executing Graph Search: {tool_input}")
         result = await search_graph_tool(tool_input)
+    
+    elif tool_name == "web_search":
+        logger.info(f"Executing Web Search: {tool_input}")
+        result = await web_search_tool(tool_input)
         
     else:
         result = "Unknown tool requested."

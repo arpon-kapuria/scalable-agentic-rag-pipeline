@@ -1,6 +1,6 @@
 # Workflow
 
-- [ ] Missing packages - vllm, PyTorch, redis, sqlalchemy, langgraph
+- [ ] Missing packages - vllm, PyTorch, redis, sqlalchemy, langgraph, simpleeval, Tavily api key in .env, 
 
 
 ### Dataset Preparation:
@@ -73,11 +73,12 @@
 - [x] Implement query enhancement in `services/api/app/enhancers/` using *HyDE* for improved retrieval accuracy and coreference resolution to rewrite ambiguous queries into standalone search queries before hitting the retriever.
 - [x] Implement the FastAPI application entrypoint in `services/api/main.py` managing lifecycle events — initializing database connections on startup and closing them gracefully on shutdown.
 
+> **Why JSON logging over Standard text logging?**
+> Standard text logs are useless at scale when you have 50 pods running. JSON logs allow us to query logs like a database, filtering by error levels or specific request IDs to trace bugs across distributed nodes.
+
 
 ### Tools & Sandbox
 - [x] Implement a hardened sandbox microservice in `services/sandbox/` — a isolated Docker container running a Flask execution server with a non-root user, CPU/RAM resource limits, and a Kubernetes NetworkPolicy blocking all egress traffic, ensuring LLM-generated code cannot exfiltrate data or affect the host system.
-- [x]  Implement the sandbox client in `services/api/app/tools/sandbox.py` that sends LLM-generated code to the sandbox over HTTP.
-
-
-> **Why JSON logging over Standard text logging?**
-> Standard text logs are useless at scale when you have 50 pods running. JSON logs allow us to query logs like a database, filtering by error levels or specific request IDs to trace bugs across distributed nodes.
+- [x] Implement an isolated sandbox client in `services/api/app/tools/sandbox.py` that sends LLM-generated code to the sandbox over HTTP.
+- [x] Implement safe deterministic tools in `services/api/app/tools/` — a math expression evaluator using AST parsing (`calculator.py`), an entity-aware Neo4j search with two-stage Cypher injection prevention (`graph_search.py`), a Qdrant document retrieval tool (`vector_search.py`), a real-time web search via Tavily API (`web_search.py`).
+- [ ] 
