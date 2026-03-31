@@ -60,9 +60,9 @@
 ```
 scalable-agentic-rag/
 ├── libs/
-│   └── schemas/
-│       ├── chat.py                       # pydantic data models (schemas) used across the RAG chat system
-│
+│   ├── schemas/
+│   │   ├── chat.py                       # pydantic data models (schemas) used across the RAG chat system
+│   │
 │   └── utils/
 │       ├── backoff.py                    # retry mechanism using exponential backoff for transient failures
 │       ├── document_parsing.py           # dynamic handler to parse different documents
@@ -151,6 +151,12 @@ scalable-agentic-rag/
 │   │   │   │   ├── llm_engine.py         # deploys an LLM inference service using Ray Serve and vLLM
 │   │   │   │   └── embedding_engine.py   # deploys embedding service using Ray Serve and sentence_transformers
 │   │   │   │
+│   │   │   ├── routes/  
+│   │   │   │   ├── chat.py               # main chat entrypoint route
+│   │   │   │   ├── feedback.py           # user feedback (RLHF) route to improve the system
+│   │   │   │   ├── health.py             # k8s health checks routes
+│   │   │   │   ├── upload.py             # efficient user file upload route
+│   │   │   │
 │   │   │   ├── tools/  
 │   │   │   │   ├── calculator.py         # safe math expression evaluator using AST parsing
 │   │   │   │   ├── graph_search.py       # entity-aware Neo4j search with Cypher injection prevention
@@ -164,6 +170,9 @@ scalable-agentic-rag/
 │   │   │  
 │   │   ├── main.py                       # agentic application entry point 
 │   │   └── requirements.txt
+│   │
+│   ├── gateway/
+│   │   ├── rate_limit.lua                # rate limiting using Redis (Token Bucket Algorithm)
 │   │
 │   ├── sandbox/
 │   │   ├── Dockerfile                    # minimal hardened container that runs the sandbox server as a non root user

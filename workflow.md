@@ -1,6 +1,6 @@
 # Workflow
 
-- [ ] Missing packages - vllm, PyTorch, redis, sqlalchemy, langgraph, simpleeval, Tavily api key in .env, 
+- [ ] Missing packages - vllm, PyTorch, redis, sqlalchemy, langgraph, simpleeval, Tavily api key in .env, lua, nginx
 
 
 ### Dataset Preparation:
@@ -81,4 +81,7 @@
 - [x] Implement a hardened sandbox microservice in `services/sandbox/` — a isolated Docker container running a Flask execution server with a non-root user, CPU/RAM resource limits, and a Kubernetes NetworkPolicy blocking all egress traffic, ensuring LLM-generated code cannot exfiltrate data or affect the host system.
 - [x] Implement an isolated sandbox client in `services/api/app/tools/sandbox.py` that sends LLM-generated code to the sandbox over HTTP.
 - [x] Implement safe deterministic tools in `services/api/app/tools/` — a math expression evaluator using AST parsing (`calculator.py`), an entity-aware Neo4j search with two-stage Cypher injection prevention (`graph_search.py`), a Qdrant document retrieval tool (`vector_search.py`), a real-time web search via Tavily API (`web_search.py`).
-- [ ] 
+- [x] Implement the main chat route in `services/api/app/routes/chat.py` — orchestrating the full RAG pipeline with semantic cache fast path, conversation history loading, LangGraph agent streaming, and post-processing memory and cache updates via NDJSON streaming response.
+- [x] Implement supporting API routes — presigned S3 URL generation for large file uploads in `routes/upload.py`, RLHF feedback collection in `routes/feedback.py`, and Kubernetes liveness/readiness health checks in `routes/health.py`.
+- [x] Implement gateway rate limiting in `services/gateway/rate_limit.lua` using a *token bucket algorithm* in Nginx/OpenResty with Redis as the counter backend — blocking excessive traffic before it reaches FastAPI.
+- [x] We have now built the entire application stack: Ingestion, Models, Agent, and Tools. 
