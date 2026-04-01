@@ -100,4 +100,17 @@
 
 
 ### Deployment
+- [x] Bootstrap the cluster in `scripts/bootstrap_cluster.sh` — installing KubeRay operator, Qdrant, Ray cluster, AI model services, Nginx ingress and the FastAPI application in the correct dependency order before any application traffic is served.
+- [x] Manage secrets securely in `deploy/secrets/external-secrets.yaml` — fetching database passwords and API keys from AWS Secrets Manager and injecting them as Kubernetes secrets into pods, keeping all sensitive credentials completely out of git history.
+- [x] Deploy Qdrant in `deploy/helm/qdrant/values.yaml` with 3 replicas across availability zones, persistent gp3 SSD storage and *on_disk_payload* enabled to handle millions of document vectors beyond RAM capacity without crashing.
+- [x] Deploy Neo4j in `deploy/helm/neo4j/values.yaml` with 8GB RAM for graph traversal performance and a 100GB persistent volume so the knowledge graph survives pod restarts and redeployments.
+- [x] Expose the API to the internet via `deploy/ingress/nginx.yaml` — routing /chat and /upload traffic through a single AWS Load Balancer with 1-hour streaming timeouts to prevent Nginx from cutting long LLM responses mid-stream.
+- [x] Define Ray autoscaling in `deploy/ray/autoscaling.yaml` — CPU workers scaling from 1 to 50 for ingestion workloads and GPU workers scaling from 0 to 20 with a 5-minute idle timeout enabling scale-to-zero to eliminate overnight GPU costs.
+- [x] Deploy the Ray cluster in `deploy/ray/ray-cluster.yaml` — a head node that manages scheduling without running tasks, CPU worker group on c6i instances for document ingestion, and GPU worker group on g5 instances with tolerations ensuring AI workloads only land on GPU nodes.
+- [x] Serve the embedding model in `deploy/ray/ray-serve-embed.yaml` with GPU fractional sharing (0.5 GPU per replica) fitting two models per GPU, autoscaling from 1 to 5 replicas based on request queue depth.
+- [x] Serve Llama 3 70B in `deploy/ray/ray-serve-llm.yaml` using vLLM with AWQ 4-bit quantization to fit the model on smaller GPUs, 128 concurrent sequences per GPU, 15-minute health threshold for model loading, and zero-downtime traffic switching on model updates.
+- [x] Tear down all infrastructure safely in `scripts/cleanup.sh` — uninstalling Helm releases, waiting 20 seconds for AWS Load Balancers to deregister before running *terraform destroy* to prevent VPC deletion failures.
+
+
+# Evaluation & Ops
 - [ ] 

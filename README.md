@@ -62,6 +62,26 @@
 ### Structure
 ```
 scalable-agentic-rag/
+├── deploy/
+│   ├── helm/
+│   │   ├── neo4j/ 
+│   │   │   └── values.yaml               # graph DB with 8GB RAM and 100GB persistent volume
+│   │   │
+│   │   └── qdrant/ 
+│   │       └── values.yaml               # 3-replica vector DB with persistent SSD and on-disk payload
+│   │
+│   ├── ingress/
+│   │   ├── nginx.yaml                    # single load balancer routing with 1-hour streaming timeouts
+│   │
+│   ├── ray/
+│   │   ├── autoscaling.yaml              # cpu and gpu worker scaling rules with 5-minute idle timeout
+│   │   ├── ray-cluster.yaml              # head node, CPU ingestion workers and GPU inference workers
+│   │   ├── ray-serve-embed.yaml          # embedding model with fractional GPU sharing
+│   │   └── ray-serve-llm.yaml            # llm model with AWQ quantization and zero-downtime updates
+│   │
+│   ├── secrets/
+│   │   └── external-secrets.yaml         # fetch secrets from AWS Secrets Manager and inject into pods
+│
 ├── infra/
 │   ├── karpenter/
 │   │   ├── provisioner-cpu.yaml          # spot instance provisioner with consolidation for stateless API pods
@@ -131,7 +151,9 @@ scalable-agentic-rag/
 │       └── s3_event_handler.py           # [Auto prod] Lambda handler, listens for S3 uploads and submits ingestion jobs to Ray
 │
 ├── scripts/
-│   └── bulk_upload_s3.py                 # high-performance parallel uploader to push datasets to S3
+│   ├── bootstap_cluster.sh               # pre-flight cluster setup and application deployment in dependency order
+│   ├── bulk_upload_s3.py                 # high-performance parallel uploader to push datasets to S3
+│   ├── cleanup.sh                        # safe teardown of all helm releases and terraform infrastructure
 │
 ├── services/
 │   ├── api/

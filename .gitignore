@@ -164,3 +164,8 @@ cython_debug/
 # artifacts / data
 data/
 pipelines/jobs/requirements-ray.txt
+
+
+
+# Remove this file later, just for documentation purposes
+workflow-pipeline.txt
