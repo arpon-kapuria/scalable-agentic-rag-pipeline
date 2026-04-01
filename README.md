@@ -44,6 +44,9 @@
   <a href="https://kubernetes.io/">
     <img src="https://img.shields.io/badge/Kubernetes-326CE5?logo=kubernetes&logoColor=white" alt="Kubernetes" />
   </a>
+    <a href="https://developer.hashicorp.com/terraform">
+    <img src="https://img.shields.io/badge/Terraform-7B42BC?logo=terraform&logoColor=white" alt="Terraform" />
+  </a>
 
   <!-- Observability -->
   <a href="https://prometheus.io/">
@@ -59,6 +62,23 @@
 ### Structure
 ```
 scalable-agentic-rag/
+├── infra/
+│   ├── karpenter/
+│   │   ├── provisioner-cpu.yaml          # spot instance provisioner with consolidation for stateless API pods
+│   │   └── provisioner-gpu.yaml          # on-demand/spot GPU provisioner with 30s scale-to-zero for LLM inference
+│   │
+│   └── terraform/
+│       ├── eks.tf                        # EKS cluster with OIDC enabled system node group
+│       ├── iam.tf                        # least-privilege IRSA roles binding pods to scoped S3 policies
+│       ├── main.tf                       # providers, remote state backend (S3 + DynamoDB locking)
+│       ├── neo4j.tf                      # security groups restricting neo4j bolt port to VPC-only traffic
+│       ├── outputs.tf                    # exports endpoints for kubernetes secret configuration
+│       ├── rds.tf                        # aurora serverless v2 postgresql scaling 2-64 ACUs
+│       ├── redis.tf                      # elasticache redis with primary/replica HA and encryption
+│       ├── s3.tf                         # versioned document bucket with transfer acceleration and lifecycle tiering
+│       ├── variables.tf                  # parameterized inputs for multi-environment deployments
+│       └── vpc.tf                        # 3-tier network (public, private, database subnets across 3 AZs)
+│
 ├── libs/
 │   ├── schemas/
 │   │   ├── chat.py                       # pydantic data models (schemas) used across the RAG chat system

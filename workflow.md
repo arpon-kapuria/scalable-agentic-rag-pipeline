@@ -85,3 +85,19 @@
 - [x] Implement supporting API routes — presigned S3 URL generation for large file uploads in `routes/upload.py`, RLHF feedback collection in `routes/feedback.py`, and Kubernetes liveness/readiness health checks in `routes/health.py`.
 - [x] Implement gateway rate limiting in `services/gateway/rate_limit.lua` using a *token bucket algorithm* in Nginx/OpenResty with Redis as the counter backend — blocking excessive traffic before it reaches FastAPI.
 - [x] We have now built the entire application stack: Ingestion, Models, Agent, and Tools. 
+
+
+### Infrastructure as Code (IaC)
+- [x] We use **Terraform** to define our entire cloud footprint as code. This allows us to spin up identical dev, staging, and prod environments in minutes. We also use **Karpenter** for intelligent, just-in-time node scaling that is faster and cheaper than standard AWS Auto Scaling Groups.
+- [x] Set up Terraform foundation with remote state — configure AWS, Kubernetes and Helm providers in `infra/terraform/main.tf`, store the state file in S3 with DynamoDB locking so two engineers can never corrupt the infrastructure by running terraform apply at the same time.
+- [x] Parameterize the entire infrastructure in `infra/terraform/variables.tf` — define region, environment, cluster name and database password as variables so the same Terraform code deploys identical dev, staging and prod environments by just swapping a .tfvars file.
+- [x] Build a 3-tier VPC in `infra/terraform/vpc.tf` — public subnets for load balancers, private subnets for application pods, database subnets for PostgreSQL and Redis, all spread across 3 availability zones so a single data center failure doesn't take down the platform. NAT Gateways allow pods to download packages without being exposed to the internet
+- [x] Provision the EKS Kubernetes cluster in `infra/terraform/eks.tf` — deploy a small always-on system node group just for CoreDNS and Karpenter, enable OIDC so individual pods can authenticate to AWS using short-lived tokens instead of hardcoded credentials.
+- [x] Lock down AWS permissions in `infra/terraform/iam.tf` — give the Ray ingestion worker access to the documents S3 bucket and nothing else, so a compromised pod cannot touch databases, billing or any other AWS resource.
+- [x] Provision all managed databases — Aurora Serverless PostgreSQL that automatically scales compute from cheap to powerful based on chat traffic in `infra/terraform/rds.tf`, encrypted Redis with a hot-standby replica in `infra/terraform/redis.tf`, versioned S3 bucket with Transfer Acceleration for fast global uploads and automatic cost-saving storage tiering after 30 days in `infra/terraform/s3.tf`, and a firewall rule blocking all external internet access to Neo4j in `infra/terraform/neo4j.tf`.
+- [x] Export every database endpoint and cluster URL in `infra/terraform/outputs.tf` so they can be directly plugged into Kubernetes secrets in the next step.
+- [x] Configure Karpenter autoscaling with a CPU provisioner in `infra/karpenter/provisioner-cpu.yaml` using Spot instances with consolidation for stateless API pods, and a GPU provisioner in `infra/karpenter/provisioner-gpu.yaml` with TTL-based scale-to-zero for Ray LLM inference nodes — paying for GPUs only during active inference.
+
+
+### Deployment
+- [ ] 
