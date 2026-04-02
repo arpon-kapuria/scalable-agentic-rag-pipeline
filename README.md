@@ -82,6 +82,16 @@ scalable-agentic-rag/
 │   ├── secrets/
 │   │   └── external-secrets.yaml         # fetch secrets from AWS Secrets Manager and inject into pods
 │
+├── eval/
+│   ├── datasets/
+│   │   ├── golden.json                   # benchmark dataset of curated question-answer pairs
+│   │
+│   ├── judges/
+│   │   └── llm_judge.py                  # automated system answer grading using llm-as-a-judge pattern
+│   │
+│   ├── ragas/
+│   │   └── run.py                        # ragas evaluation pipeline for retrieval and generation quality
+│
 ├── infra/
 │   ├── karpenter/
 │   │   ├── provisioner-cpu.yaml          # spot instance provisioner with consolidation for stateless API pods
@@ -100,6 +110,10 @@ scalable-agentic-rag/
 │       └── vpc.tf                        # 3-tier network (public, private, database subnets across 3 AZs)
 │
 ├── libs/
+│   ├── observability/
+│   │   ├── metrics.py                    # prometheus metrics for request throughput, latency and token usage
+│   │   └── tracing.py                    # opentelemetry distributed tracing configuration and span utilities
+│   │
 │   ├── schemas/
 │   │   ├── chat.py                       # pydantic data models (schemas) used across the RAG chat system
 │   │
@@ -154,6 +168,9 @@ scalable-agentic-rag/
 │   ├── bootstap_cluster.sh               # pre-flight cluster setup and application deployment in dependency order
 │   ├── bulk_upload_s3.py                 # high-performance parallel uploader to push datasets to S3
 │   ├── cleanup.sh                        # safe teardown of all helm releases and terraform infrastructure
+│   ├── load_test.py                      # locust-based load testing for api performance and autoscaling validation
+│   ├── migrate_db.sh                     # alembic database migration runner for zero-downtime schema updates
+│   ├── warmup_cache.py                   # semantic cache pre-warming script for post-deployment cold start prevention
 │
 ├── services/
 │   ├── api/

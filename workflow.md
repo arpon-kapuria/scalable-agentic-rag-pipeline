@@ -1,6 +1,6 @@
 # Workflow
 
-- [ ] Missing packages - vllm, PyTorch, redis, sqlalchemy, langgraph, simpleeval, Tavily api key in .env, lua, nginx
+- [ ] Missing packages - vllm, PyTorch, redis, sqlalchemy, langgraph, simpleeval, Tavily api key in .env, lua, nginx, prometheus, ragas, locust, alembic
 
 
 ### Dataset Preparation:
@@ -113,4 +113,14 @@
 
 
 # Evaluation & Ops
-- [ ] 
+- [x] Define Prometheus metrics in `libs/observability/metrics.py` — tracking request count, latency histograms and LLM token usage per model to power Grafana dashboards for cost and performance monitoring.
+- [x] Configure OpenTelemetry *distributed tracing* in `libs/observability/tracing.py` — creating spans for every operation across FastAPI, Qdrant, Neo4j and Ray so slow requests can be pinpointed to the exact service causing the bottleneck.
+- [x] Build a golden evaluation dataset in `eval/datasets/golden.json` — curated question-answer pairs derived from ingested documents used as a benchmark to catch quality regressions on every code change.
+- [x] Implement *LLM-as-a-Judge* scoring in `eval/judges/llm_judge.py` — using a strong model at temperature 0.0 to deterministically grade system answers against ground truth on a 1-5 scale with structured JSON output.
+- [x] Run automated RAG evaluation in `eval/ragas/run.py` — calculating *faithfulness, answer relevancy, context precision and context recall* against the golden dataset, blocking CI/CD deployments if faithfulness drops *below 0.8*.
+- [x] Simulate production traffic in `scripts/load_test.py` using Locust — spawning concurrent users with realistic think times and streaming response consumption to tune Karpenter autoscaling before real traffic hits.
+- [x] Apply zero-downtime database schema changes in `scripts/migrate_db.py` — wrapping Alembic migrations so new columns and indexes are applied safely before new pods deploy, keeping schema and code always in sync.
+- [x] Pre-populate the semantic cache in `scripts/warmup_cache.py` — embedding and storing frequent FAQ question-answer pairs in Qdrant before deployment to eliminate cold-start latency for the first users after every release.
+
+
+# End-to-End Execution
