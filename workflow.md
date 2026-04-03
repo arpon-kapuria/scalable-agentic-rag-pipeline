@@ -3,19 +3,19 @@
 - [ ] Missing packages - vllm, PyTorch, redis, sqlalchemy, langgraph, simpleeval, Tavily api key in .env, lua, nginx, prometheus, ragas, locust, alembic
 
 
+### Data Storage Setup
+- `Aurora Postgres` for chat history and metadata storage
+- `Redis` for caching frequently accessed data
+- `Qdrant` as our vector database for storing embeddings
+- `Neo4j` as our graph database for storing relationships between entities
+- `AWS S3` as our primary document storage along with clustered Ray serving for hosting our AI models (LLM, Embeddings, Rerankers)
+- `MinIO` works as fake AWS S3 for local development
+
+
 ### Dataset Preparation:
 - [ ] Collect 950 random pdfs from this repo [https://github.com/tpn/pdfs.git] and put them into `noisy_data` folder
 - [ ] Using a script, scrape open-source kubernetes official documentation and saved them in different formats such as pdf, docx, txt, html files in the `true_data` directory
 - [ ] Merge both noisy and true data into a single `data` directory
-
-
-### Data Storage Setup
-- [ ] `Aurora Postgres` for chat history and metadata storage
-- [ ] `Redis` for caching frequently accessed data
-- [ ] `Qdrant` as our vector database for storing embeddings
-- [ ] `Neo4j` as our graph database for storing relationships between entities
-- [ ] `AWS S3` as our primary document storage along with clustered Ray serving for hosting our AI models (LLM, Embeddings, Rerankers)
-- [ ] `MinIO` works as fake AWS S3 for local development
 
 
 ### Setup Development Workflow
