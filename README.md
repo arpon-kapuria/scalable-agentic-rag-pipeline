@@ -59,6 +59,12 @@
 
 ---
 
+<p align="center">
+  <img src="./docs/system-architecture-overview.png"/>
+</p>
+
+---
+
 ### Structure
 ```
 scalable-agentic-rag/
