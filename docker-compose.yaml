@@ -21,7 +21,7 @@ services:
   qdrant:
     image: qdrant/qdrant:v1.7.3
     ports:
-      - "6334:6334"
+      - "6333:6333"
     volumes:
       - qdrant_data:/qdrant/storage
 
@@ -50,5 +50,5 @@ services:
       
 volumes:
   pg_data:
-  q_drant_data:
+  qdrant_data:
   neo4j_data:

@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     
     # Vector DB (Qdrant)
     QDRANT_HOST: str = "qdrant-service"
-    QDRANT_PORT: int = 6334
+    QDRANT_PORT: int = 6333
     QDRANT_COLLECTION: str = "scalable_rag_collection"
     
     # Graph DB (Neo4j)
