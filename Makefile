@@ -26,7 +26,7 @@ down:
 
 # Run the API locally (Hot Reload)
 dev:
-	uv run uvicorn main:app --reload --host 0.0.0.0 --port 8000 --env-file .env
+	uv run uvicorn services.api.main:app --reload --host 0.0.0.0 --port 8000 --env-file .env
 
 # Ray requirements export for Ingestion
 ray-reqs:
