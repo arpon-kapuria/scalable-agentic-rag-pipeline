@@ -23,7 +23,8 @@ class RedisClient:
             await self.redis.close()
 
     def get_client(self):
-        """Returns the raw redis client instance"""
+        if self.redis is None:
+            raise RuntimeError("Redis not connected. Call connect() first.")
         return self.redis
 
 # Global instance

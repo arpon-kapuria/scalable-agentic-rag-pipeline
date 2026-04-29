@@ -20,15 +20,28 @@ async def retrieve_node(state: AgentState) -> Dict:
 
     # Step 1: Get Embedding for the query (Call Ray Serve)
     # We await this because we need the vector for Qdrant
-    query_vector = await embed_client.embed_query(query)
+    vector = await embed_client.embed_query(query)
 
     # Step 2: Define the tasks for Parallel Execution
     
     # Task A: Vector Search (Semantic Similarity)
     async def run_vector_search():
-        results = await qdrant_client.search(vector=query_vector, limit=5)
+        results = await qdrant_client.search(query_vector=vector, limit=5)
         # Format: "Content [Source: Page 1]"
-        return [f"{r.payload['text']} [Source: {r.payload['metadata']['filename']}]" for r in results]
+        docs = []
+
+        for r in results:
+            payload = getattr(r, "payload", None)
+
+            if not payload:
+                continue
+
+            text = payload.get("text", "")
+            meta = payload.get("metadata", {})
+
+            docs.append(f"{text} [Source: {meta.get('filename', 'unknown')}]")
+
+        return docs
 
     # Task B: Graph Search (Structural Relationships)
     # We use a keyword match or a pre-defined Cypher template here.

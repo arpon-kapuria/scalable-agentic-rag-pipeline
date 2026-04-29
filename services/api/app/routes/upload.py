@@ -1,3 +1,4 @@
+import asyncio
 import boto3
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
@@ -42,18 +43,20 @@ async def generate_upload_url(
     try:
         # 2. Generate the Presigned URL
         # The frontend uses this URL with a PUT request.
-        url = s3_client.generate_presigned_url(
-            ClientMethod='put_object',
-            Params={
-                'Bucket': settings.S3_BUCKET_NAME,
-                'Key': s3_key,
-                'ContentType': req.content_type,
-                'Metadata': {
-                    'original_filename': req.filename,
-                    'user_id': user['id']
-                }
-            },
-            ExpiresIn=3600 # URL valid for 1 hour
+        url = await asyncio.to_thread(
+            s3_client.generate_presigned_url(
+                ClientMethod='put_object',
+                Params={
+                    'Bucket': settings.S3_BUCKET_NAME,
+                    'Key': s3_key,
+                    'ContentType': req.content_type,
+                    'Metadata': {
+                        'original_filename': req.filename,
+                        'user_id': user['id']
+                    }
+                },
+                ExpiresIn=3600 # URL valid for 1 hour
+            )
         )
         
         return PresignedURLResponse(

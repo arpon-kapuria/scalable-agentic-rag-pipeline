@@ -1,3 +1,4 @@
+import os
 from pydantic_settings import BaseSettings
 from typing import Optional
 
@@ -32,14 +33,15 @@ class Settings(BaseSettings):
     
     # Ray Serve (Internal LLM/Embeddings)
     RAY_LLM_ENDPOINT: str = "http://llm-service:8000/llm"
-    RAY_EMBED_ENDPOINT: str = "http://embed-service:8000/embed"
+    RAY_EMBEDDING_ENDPOINT: str = "http://embed-service:8000/embed"
     
     # Security
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"
 
     class Config:
-        env_file = ".env"
+        env_file = ".env" if os.path.exists(".env") else None
+        extra = "ignore"
 
 # Instantiate singleton
 settings = Settings()

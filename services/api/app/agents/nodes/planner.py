@@ -18,7 +18,9 @@ Output JSON format ONLY:
 {
     "action": "retrieve" | "direct_answer" | "tool_use",
     "refined_query": "The standalone search query",
-    "reasoning": "Why you chose this action"
+    "reasoning": "Why you chose this action",
+    "tool_choice": "calculator" | "graph_search" | "web_search" | null,
+    "tool_input": "The exact input to pass to the tool" | null
 }
 """
 
@@ -31,7 +33,11 @@ async def planner_node(state: AgentState) -> dict:
     # Extract latest user message
     # state['messages'] is a list of dicts or objects
     last_message = state["messages"][-1]
-    user_query = last_message.content if hasattr(last_message, 'content') else last_message['content']
+
+    if isinstance(last_message, dict):
+        user_query = last_message.get("content", "")
+    else:
+        user_query = getattr(last_message, "content", "")
 
     # Call LLM to plan
     try:
@@ -51,7 +57,10 @@ async def planner_node(state: AgentState) -> dict:
         # Update State
         return {
             "current_query": plan.get("refined_query", user_query),
-            "plan": [plan["reasoning"]]
+            "plan": [plan["reasoning"]],
+            "action": plan.get("action", "retrieve"),
+            "tool_choice": plan.get("tool_choice", ""),   
+            "tool_input": plan.get("tool_input", "")  
         }
         
     except Exception as e:
@@ -59,5 +68,6 @@ async def planner_node(state: AgentState) -> dict:
         # Fallback: Assume we need to search
         return {
             "current_query": user_query,
-            "plan": ["Error in planning, defaulting to retrieval."]
+            "plan": ["Error in planning, defaulting to retrieval."],
+            "action": "retrieve"
         }
