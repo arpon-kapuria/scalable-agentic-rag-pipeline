@@ -27,6 +27,8 @@ async def readiness(response: Response):
         r = redis_client.get_client()
         if await r.ping():
             status_report["redis"] = "up"
+        else:
+            is_healthy = False
     except Exception:
         is_healthy = False
 

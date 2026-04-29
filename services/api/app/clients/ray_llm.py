@@ -55,12 +55,21 @@ class RayLLMClient:
         payload = {
             "messages": messages,
             "temperature": temperature,
-            "max_tokens": 1024
+            "max_tokens": 1024,
         }
+
+        if json_mode:
+            payload["response_format"] = {"type": "json_object"}
 
         response = await self.client.post(self.endpoint, json=payload)
         response.raise_for_status()
-        return response.json()["choices"][0]["message"]["content"]
-    
+        
+        try:
+            return response.json()["choices"][0]["message"]["content"]
+        except Exception as e:
+            logger.error(f"LLM PARSE ERROR: {e}")
+            logger.error(f"RAW RESPONSE: {response.text}")
+            raise
+
 # Global Instance (Managed by Lifespan in main.py)
 llm_client = RayLLMClient()

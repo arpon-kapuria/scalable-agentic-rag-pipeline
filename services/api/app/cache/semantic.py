@@ -24,11 +24,10 @@ class SemanticCache:
             
             # 2. Search in a specific 'cache' collection in Qdrant 
             # (or Redis Vector if configured)
-            results = await qdrant_client.client.search(
+            results = await qdrant_client.search_collection(
                 collection_name="semantic_cache",
                 query_vector=vector,
                 limit=1,
-                with_payload=True,
                 score_threshold=threshold # Only extremely similar queries
             )
             

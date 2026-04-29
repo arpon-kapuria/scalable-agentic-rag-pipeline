@@ -17,3 +17,9 @@ class AgentState(TypedDict):
     
     # Internal scratchpad for the planner
     plan: List[str]
+
+    action: str
+
+    tool_choice: str 
+
+    tool_input: str 

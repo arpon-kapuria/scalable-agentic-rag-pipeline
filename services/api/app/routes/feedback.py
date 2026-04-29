@@ -10,7 +10,7 @@ class FeedbackRequest(BaseModel):
     session_id: str
     message_id: int # ID of the assistant message from chat_history
     score: int # 1 (Like) or -1 (Dislike)
-    comment: str = None
+    comment: str | None = None
 
 @router.post("/")
 async def submit_feedback(

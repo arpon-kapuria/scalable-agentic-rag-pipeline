@@ -28,17 +28,12 @@ down:
 dev:
 	uv run uvicorn services.api.main:app --reload --host 0.0.0.0 --port 8000 --env-file .env
 
-# Ray requirements export for Ingestion
-ray-reqs:
-	uv export --frozen --only-group ingestion -o pipelines/jobs/requirements-ray.txt
-	@echo "  ✓ pipelines/jobs/requirements-ray.txt updated"
-
 # Infrastructure (Terraform)
 infra:
 	cd infra/terraform && terraform init && terraform apply
 
 # Kubernetes Deployment (Helm)
-deploy: ray-reqs
+deploy:
 	# Update dependencies
 	helm dependency update deploy/helm/api
 

@@ -39,7 +39,6 @@
 - [x] Combine all the ingestion components in one file `ingestion/main.py` to process parallely
 - [x] Setup `ray_job.yaml` as a manual trigger for Ray distributed ingestion pipeline during development and testing
 - [x] Setup `s3_event_handler.py` as the production event-driven trigger — automatically submits an ingestion job to Ray when a file is uploaded to S3
-- [x] The `pipelines/jobs/requirements-ray.txt` file needs to be generated using `Makefile` command from our main pyproject.toml but only includes the dependencies needed for the ingestion job (not the entire platform)
 - [x] Setup `bulk_upload_s3.py` script that scans a local directory and uploads all files to S3 in parallel using multipart upload with retries, automatically triggering the downstream ingestion pipeline via S3 events
 
 
@@ -124,3 +123,19 @@
 
 
 # End-to-End Execution
+
+### 1. AWS 
+
+#### Terraform Backend
+- [x] Create an S3 bucket `scalable-rag-platform-terraform-state-prod-001` in us-east-1 to store Terraform state files. Enable:
+    1. Versioning (to track state history and recover from mistakes)
+    2. Encryption (SSE-S3) for security
+    3. Keep public access blocked
+- [x] Create a DynamoDB table `terraform-state-lock` for state locking as this is critical to prevent multiple people from applying changes at the same time. Configure:
+    1. Partition key: LockID (Type: String)
+    2. Leave all other settings as default (on-demand capacity)
+
+#### Switch to Terminal
+- [ ] 
+
+
