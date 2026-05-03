@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "documents" {
-  bucket = "rag-platform-documents-prod" # Must be globally unique
+  bucket = "rag-platform-documents-prod-001" # Must be globally unique
 
   # Force Destroy is FALSE for production data safety
   force_destroy = false 
@@ -31,6 +31,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "docs_lifecycle" {
   rule {
     id     = "archive-old-files"
     status = "Enabled"
+
+    filter {}
 
     transition {
       days          = 30

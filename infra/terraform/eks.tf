@@ -3,7 +3,7 @@ module "eks" {
   version = "~> 19.0"
 
   cluster_name    = var.cluster_name
-  cluster_version = "1.29" # Use stable K8s version
+  cluster_version = "1.32" # Use stable K8s version
 
   # Networking: Connect to the VPC we just created
   vpc_id                         = module.vpc.vpc_id

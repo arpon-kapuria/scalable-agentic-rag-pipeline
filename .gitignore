@@ -173,3 +173,8 @@ pipelines/jobs/requirements-ray.txt
 
 # Remove this file later, just for documentation purposes
 workflow-pipeline.txt
+
+
+# aws / terraform related files
+aws_outputs.txt
+infra/aws-nuke/config.yaml

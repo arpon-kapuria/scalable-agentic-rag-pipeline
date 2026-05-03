@@ -27,7 +27,7 @@ terraform {
     key            = "platform/terraform.tfstate"                     # Path inside bucket
     region         = "us-east-1"                                      # AWS Region
     encrypt        = true                                             # Encrypt state at rest
-    dynamodb_table = "terraform-state-lock"                           # Prevents concurrent writes
+    use_lockfile   = true                                             # Prevents concurrent writes
   }
 }
 

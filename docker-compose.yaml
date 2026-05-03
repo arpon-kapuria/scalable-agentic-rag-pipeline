@@ -19,7 +19,7 @@ services:
 
   # 3. Qdrant (Vector DB)
   qdrant:
-    image: qdrant/qdrant:v1.7.3
+    image: qdrant/qdrant:v1.17.0
     ports:
       - "6333:6333"
     volumes:
@@ -27,7 +27,7 @@ services:
 
   # 4. Neo4j (Graph DB)
   neo4j:
-    image: neo4j:5.16.0-community
+    image: neo4j:6.1.0
     environment:
       NEO4J_AUTH: neo4j/password
       NEO4J_dbms_memory_pagecache_size: 1G
