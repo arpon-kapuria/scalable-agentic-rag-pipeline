@@ -78,7 +78,7 @@ docker-build:
 	@echo "🔨 Building API image..."
 	docker build -t rag-api -f services/api/Dockerfile .
 	@echo "🔨 Building Models image..."
-	docker build -t rag-models -f services/api/app/models/Dockerfile .
+	docker build --build-arg MODE=minimal -t rag-models -f services/api/app/models/Dockerfile .
 # 	@echo "🔨 Building Sandbox image..."
 # 	docker build -t rag-sandbox -f services/sandbox/Dockerfile .
 

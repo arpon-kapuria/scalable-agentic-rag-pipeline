@@ -1,75 +1,69 @@
+<div align="center">
+
+# Scalable Agentic RAG Pipeline
+
+**A cloud-native platform for large-scale retrieval, reasoning, and LLM-powered knowledge processing.**
+
+Built to support production-grade agentic workflows through hybrid retrieval (vector + graph), distributed inference, scalable orchestration, and end-to-end observability. The platform combines LangGraph agents, Ray-based distributed execution, vLLM inference, knowledge graphs, and Kubernetes-native infrastructure to enable reliable and cost-efficient deployment of enterprise AI systems.
+
+<br>
+
 <p align="center">
-  <!-- Core Language & Framework -->
-  <a href="https://www.python.org/">
-    <img src="https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=FFD43B" alt="Python" />
-  </a>
-  <a href="https://github.com/astral-sh/uv">
-    <img src="https://img.shields.io/badge/uv-DE5FE9?logo=uv&logoColor=white" alt="uv" />
-  </a>
-  <a href="https://fastapi.tiangolo.com/">
-    <img src="https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white" alt="FastAPI" />
-  </a>
+  <!-- Core Platform -->
+  <img src="https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=FFD43B" alt="Python" />
+  <img src="https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/uv-DE5FE9?logo=uv&logoColor=white" alt="uv" />
 
-  <!-- Databases -->
-  <a href="https://www.postgresql.org/">
-    <img src="https://img.shields.io/badge/PostgreSQL-316192?logo=postgresql&logoColor=white" alt="PostgreSQL" />
-  </a>
-  <a href="https://redis.io/">
-    <img src="https://img.shields.io/badge/Redis-FF4438?logo=redis&logoColor=white" alt="Redis" />
-  </a>
-  <a href="https://qdrant.tech/">
-    <img src="https://img.shields.io/badge/Qdrant-DC244C?logo=qdrant&logoColor=white" alt="Qdrant" />
-  </a>
-  <a href="https://neo4j.com/">
-    <img src="https://img.shields.io/badge/Neo4j-4581C3?logo=neo4j&logoColor=white" alt="Neo4j" />
-  </a>
+  <!-- AI & Orchestration -->
+  <img src="https://img.shields.io/badge/PyTorch-EE4C2C?logo=pytorch&logoColor=white" alt="PyTorch" />
+  <img src="https://img.shields.io/badge/LangGraph-1C3C3C?logo=langchain&logoColor=white" alt="LangGraph" />
 
-  <!-- Object Storage -->
-  <a href="https://aws.amazon.com/s3/">
-    <img src="https://img.shields.io/badge/AWS%20S3-FF9900?logo=amazons3&logoColor=white" alt="AWS S3" />
-  </a>
-  <a href="https://min.io/">
-    <img src="https://img.shields.io/badge/MinIO-C72E49?logo=minio&logoColor=white" alt="MinIO" />
-  </a>
+  <!-- Data Layer -->
+  <img src="https://img.shields.io/badge/PostgreSQL-316192?logo=postgresql&logoColor=white" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/Redis-DC382D?logo=redis&logoColor=white" alt="Redis" />
+  <img src="https://img.shields.io/badge/Qdrant-DC244C?logo=qdrant&logoColor=white" alt="Qdrant" />
+  <img src="https://img.shields.io/badge/Neo4j-4581C3?logo=neo4j&logoColor=white" alt="Neo4j" />
 
-  <!-- Distributed Compute -->
-  <a href="https://www.ray.io/">
-    <img src="https://img.shields.io/badge/Ray-028CF0?logo=ray&logoColor=white" alt="Ray" />
-  </a>
+  <!-- Distributed Systems -->
+  <img src="https://img.shields.io/badge/vLLM-FDB515?logoColor=30A2FF" />
+  <img src="https://img.shields.io/badge/Ray-028CF0?logo=ray&logoColor=white" alt="Ray" />
 
-  <!-- Infra -->
-  <a href="https://www.docker.com/">
-    <img src="https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white" alt="Docker" />
-  </a>
-  <a href="https://kubernetes.io/">
-    <img src="https://img.shields.io/badge/Kubernetes-326CE5?logo=kubernetes&logoColor=white" alt="Kubernetes" />
-  </a>
-    <a href="https://developer.hashicorp.com/terraform">
-    <img src="https://img.shields.io/badge/Terraform-7B42BC?logo=terraform&logoColor=white" alt="Terraform" />
-  </a>
+  <!-- Infrastructure -->
+  <img src="https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white" />
+  <img src="https://img.shields.io/badge/Kubernetes-326CE5?logo=kubernetes&logoColor=white" />
+  <img src="https://img.shields.io/badge/Terraform-7B42BC?logo=terraform&logoColor=white" />
+  <img src="https://img.shields.io/badge/AWS-232F3E?logo=amazonaws&logoColor=FF9900" />
+  <img src="https://img.shields.io/badge/Nginx-009639?logo=nginx&logoColor=white" />
 
   <!-- Observability -->
-  <a href="https://prometheus.io/">
-    <img src="https://img.shields.io/badge/Prometheus-E6522C?logo=prometheus&logoColor=white" alt="Prometheus" />
-  </a>
-  <a href="https://grafana.com/">
-    <img src="https://img.shields.io/badge/Grafana-F46800?logo=grafana&logoColor=white" alt="Grafana" />
-  </a>
+  <img src="https://img.shields.io/badge/OpenTelemetry-000000?logo=opentelemetry&logoColor=white" />
+  <img src="https://img.shields.io/badge/Prometheus-E6522C?logo=prometheus&logoColor=white" />
+  <img src="https://img.shields.io/badge/Grafana-F46800?logo=grafana&logoColor=white" />
 </p>
-
----
 
 <p align="center">
-  <img src="./docs/system-architecture-overview.png"/>
+  <img src="./assets/system-architecture-overview.png"/>
 </p>
+
+</div>
 
 ---
 
-### Structure
+## 📂 Architecture Overview
+
+
 ```
-scalable-agentic-rag/
+scalable-agentic-rag-pipeline/
 ├── deploy/
 │   ├── helm/
+│   │   ├── api/     
+│   │   │   ├── templates/    
+│   │   │   │   ├── deployment.yaml       # fastapi app deployment with autoscaling, probes, and resource limits
+│   │   │   │   └── service.yaml          # internal k8s service exposing the API deployment
+│   │   │   │    
+│   │   │   ├── charts.yaml               # helm chart metadata and dependency definitions
+│   │   │   └── values.yaml               # graph DB with 8GB RAM and 100GB persistent volume
+│   │   │
 │   │   ├── neo4j/ 
 │   │   │   └── values.yaml               # graph DB with 8GB RAM and 100GB persistent volume
 │   │   │
@@ -85,18 +79,23 @@ scalable-agentic-rag/
 │   │   ├── ray-serve-embed.yaml          # embedding model with fractional GPU sharing
 │   │   └── ray-serve-llm.yaml            # llm model with AWQ quantization and zero-downtime updates
 │   │
-│   ├── secrets/
-│   │   └── external-secrets.yaml         # fetch secrets from AWS Secrets Manager and inject into pods
+│   ├── sandbox/
+│   │   └── deployment.yaml               # isolated code-execution sandbox deployment with strict security policies
+
+│   │
+│   └── secrets/
+│       ├── cluster-secret-store.yaml     # external Secrets Operator backend config for AWS Secrets Manager
+│       └── external-secrets.yaml         # fetch secrets from AWS Secrets Manager and inject into pods
 │
 ├── eval/
 │   ├── datasets/
-│   │   ├── golden.json                   # benchmark dataset of curated question-answer pairs
+│   │   └── golden.json                   # benchmark dataset of curated question-answer pairs
 │   │
 │   ├── judges/
 │   │   └── llm_judge.py                  # automated system answer grading using llm-as-a-judge pattern
 │   │
-│   ├── ragas/
-│   │   └── run.py                        # ragas evaluation pipeline for retrieval and generation quality
+│   └── ragas/
+│       └── run.py                        # ragas evaluation pipeline for retrieval and generation quality
 │
 ├── infra/
 │   ├── karpenter/
@@ -104,16 +103,17 @@ scalable-agentic-rag/
 │   │   └── provisioner-gpu.yaml          # on-demand/spot GPU provisioner with 30s scale-to-zero for LLM inference
 │   │
 │   └── terraform/
+│       ├── ecr.tf                        # ECR repositories for API, models, and container image lifecycle policies
 │       ├── eks.tf                        # EKS cluster with OIDC enabled system node group
 │       ├── iam.tf                        # least-privilege IRSA roles binding pods to scoped S3 policies
 │       ├── main.tf                       # providers, remote state backend (S3 + DynamoDB locking)
 │       ├── neo4j.tf                      # security groups restricting neo4j bolt port to VPC-only traffic
 │       ├── outputs.tf                    # exports endpoints for kubernetes secret configuration
-│       ├── rds.tf                        # aurora serverless v2 postgresql scaling 2-64 ACUs
+│       ├── rds.tf                        # aurora serverless v2 postgresql scaling
 │       ├── redis.tf                      # elasticache redis with primary/replica HA and encryption
 │       ├── s3.tf                         # versioned document bucket with transfer acceleration and lifecycle tiering
 │       ├── variables.tf                  # parameterized inputs for multi-environment deployments
-│       └── vpc.tf                        # 3-tier network (public, private, database subnets across 3 AZs)
+│       └── vpc.tf                        # 3-tier network (public, private, database subnets)
 │
 ├── libs/
 │   ├── observability/
@@ -134,7 +134,7 @@ scalable-agentic-rag/
 │   │   └── bge-m3.yaml                   # configuration for embedding model (bge-m3)
 │   │
 │   ├── llm/
-│   │   ├── llama-7b.yaml                 # configuration for llama-3-7b-Instruct (ligher tasks)
+│   │   ├── llama-7b.yaml                 # configuration for llama-3-7b-Instruct/TinyLlama (ligher tasks)
 │   │   └── llama-70b.yaml                # configuration for llama-3-70b-Instruct (heavy tasks)
 │   │
 │   └── rerankers/
@@ -167,7 +167,6 @@ scalable-agentic-rag/
 │   │
 │   └── jobs/
 │       ├── ray_job.yaml                  # [Manual dev/testing] Ray job specification used by the Ray Job Submission API
-│       ├── requirements-ray.txt          # [Generate manually] Contains the dependencies needed for the ingestion job
 │       └── s3_event_handler.py           # [Auto prod] Lambda handler, listens for S3 uploads and submits ingestion jobs to Ray
 │
 ├── scripts/
@@ -175,7 +174,9 @@ scalable-agentic-rag/
 │   ├── bulk_upload_s3.py                 # high-performance parallel uploader to push datasets to S3
 │   ├── cleanup.sh                        # safe teardown of all helm releases and terraform infrastructure
 │   ├── load_test.py                      # locust-based load testing for api performance and autoscaling validation
+│   ├── merge_data.py                     # organized merging of data from different sources
 │   ├── migrate_db.sh                     # alembic database migration runner for zero-downtime schema updates
+│   ├── scrape_k8s_docs.py                # k8s documentation scraping
 │   ├── warmup_cache.py                   # semantic cache pre-warming script for post-deployment cold start prevention
 │
 ├── services/
@@ -189,7 +190,8 @@ scalable-agentic-rag/
 │   │   │   │   │   └── tool.py           # tool node, handles the "tool_use" branch from the planner
 │   │   │   │   │
 │   │   │   │   ├── graph.py              # graph definition, that connects all nodes into a runnable agent
-│   │   │   │   └── state.py              # shared state object that flows between nodes in the LangGraph agent
+│   │   │   │   ├── state.py              # shared state object that flows between nodes in the LangGraph agent
+│   │   │   │   └── tokenCount.py         # helper to count token used by agents
 │   │   │   │
 │   │   │   ├── auth/
 │   │   │   │   └── jwt.py                # handle JWT authentication for authorized uses of GPU
@@ -212,7 +214,8 @@ scalable-agentic-rag/
 │   │   │   │   ├── models.py             # sqlalchemy orm model for persisting chat history to rdbms
 │   │   │   │   └── postgres.py           # async pgsql CRUD for conversation history
 │   │   │   │
-│   │   │   ├── models/       
+│   │   │   ├── models/ 
+│   │   │   │   ├── Dockerfile            # multi-mode model serving image (CPU embedding and GPU vLLM inference)
 │   │   │   │   ├── llm_engine.py         # deploys an LLM inference service using Ray Serve and vLLM
 │   │   │   │   └── embedding_engine.py   # deploys embedding service using Ray Serve and sentence_transformers
 │   │   │   │
@@ -220,41 +223,115 @@ scalable-agentic-rag/
 │   │   │   │   ├── chat.py               # main chat entrypoint route
 │   │   │   │   ├── feedback.py           # user feedback (RLHF) route to improve the system
 │   │   │   │   ├── health.py             # k8s health checks routes
-│   │   │   │   ├── upload.py             # efficient user file upload route
+│   │   │   │   └── upload.py             # efficient user file upload route
 │   │   │   │
 │   │   │   ├── tools/  
 │   │   │   │   ├── calculator.py         # safe math expression evaluator using AST parsing
 │   │   │   │   ├── graph_search.py       # entity-aware Neo4j search with Cypher injection prevention
 │   │   │   │   ├── sandbox.py            # api client for sandbox communication
 │   │   │   │   ├── vector_search.py      # document retrieval tool exposing Qdrant semantic search
-│   │   │   │   ├── web_search.py         # real-time external knowledge retrieval via Tavily API
+│   │   │   │   └── web_search.py         # real-time external knowledge retrieval via Tavily API
 │   │   │   │
 │   │   │   ├── config.py                 # validates that all our database URLs and API keys exist at startup
 │   │   │   ├── logging.py                # custom structured JSON logging system
 │   │   │   └── observability.py          # observability module that wires OpenTelemetry tracing into a FastAPI app
 │   │   │  
+│   │   ├── Dockerfile                    # fastapi application container image
 │   │   ├── main.py                       # agentic application entry point 
 │   │   └── requirements.txt
 │   │
 │   ├── gateway/
+│   │   ├── Dockerfile                    # OpenResty API gateway with Redis-backed rate limiting
 │   │   ├── nginx.conf                    # loads the Lua script
 │   │   └── rate_limit.lua                # rate limiting using Redis (Token Bucket Algorithm)
 │   │
-│   ├── sandbox/
-│   │   ├── Dockerfile                    # minimal hardened container that runs the sandbox server as a non root user
-│   │   ├── limits.yaml                   # resource limits configuration for the sandbox
-│   │   ├── network-policy.yaml           # k8s firewall against data exfiltration
-│   │   └── runner.py                     # flask server (core of the sandbox) that safely runs the untrusted code
+│   └── sandbox/
+│       ├── Dockerfile                    # minimal hardened container that runs the sandbox server as a non root user
+│       ├── limits.yaml                   # resource limits configuration for the sandbox
+│       ├── network-policy.yaml           # k8s firewall against data exfiltration
+│       └── runner.py                     # flask server (core of the sandbox) that safely runs the untrusted code
 │
+├── .dockerignore
 ├── .env
 ├── .gitignore
 ├── .python-version
-├── .venv
 ├── docker-compose.yaml
 ├── main.py
 ├── Makefile
 ├── pyproject.toml
 ├── README.md
-├── uv.lock
-└── workflow.md
+└── uv.lock
 ```
+
+---
+
+## 📚 Getting Started Guide
+
+**1. Configure AWS**
+
+```bash
+aws configure
+```
+
+**2. Provision Infrastructure**
+
+Creates the AWS infrastructure required by the platform.
+
+```bash
+make infra
+```
+
+**3. Store Application Secrets**
+
+Create the required secrets in AWS Secrets Manager.
+
+```bash
+prod/rag/db_creds
+prod/rag/api_keys
+```
+
+**4. Build and Push Images**
+
+Builds and publishes the API and model-serving images to Amazon ECR.
+
+```bash
+make docker
+```
+
+**5. Bootstrap the Cluster**
+
+Deploys the platform components to Kubernetes.
+
+```bash
+make bootstrap
+```
+
+**6. Upload Documents**
+
+```bash
+python3 scripts/bulk_upload_s3.py <local_directory> <bucket_name>
+```
+
+**7. Access the Platform**
+
+After deployment, the API becomes available through the configured ingress endpoint.
+
+```bash
+POST /api/v1/chat/stream
+POST /api/v1/upload/generate-presigned-url
+```
+
+**8. Cleanup**
+
+Remove all deployed resources.
+
+```bash
+make infra-destroy
+```
+
+👉 For a detailed deployment, and request lifecycle walkthrough, see [DEPLOYMENT_GUIDE.md](/assets/docs/DEPLOYMENT_GUIDE.md). To recreate this project from scratch, see [IMPLEMENTATION_GUIDE.md](/assets/docs/IMPLEMENTATION_GUIDE.md)
+
+
+## License
+
+This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).

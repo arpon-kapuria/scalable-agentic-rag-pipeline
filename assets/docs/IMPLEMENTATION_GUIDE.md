@@ -1,8 +1,5 @@
 # Workflow
 
-- [ ] Missing packages - vllm, PyTorch, redis, sqlalchemy, langgraph, simpleeval, Tavily api key in .env, lua, nginx, prometheus, ragas, locust, alembic
-
-
 ### Data Storage Setup
 - `Aurora Postgres` for chat history and metadata storage
 - `Redis` for caching frequently accessed data
@@ -120,21 +117,4 @@
 - [x] Simulate production traffic in `scripts/load_test.py` using Locust — spawning concurrent users with realistic think times and streaming response consumption to tune Karpenter autoscaling before real traffic hits.
 - [x] Apply zero-downtime database schema changes in `scripts/migrate_db.py` — wrapping Alembic migrations so new columns and indexes are applied safely before new pods deploy, keeping schema and code always in sync.
 - [x] Pre-populate the semantic cache in `scripts/warmup_cache.py` — embedding and storing frequent FAQ question-answer pairs in Qdrant before deployment to eliminate cold-start latency for the first users after every release.
-
-
-# End-to-End Execution
-
-### 1. AWS 
-
-#### Terraform Backend
-- [x] Create an S3 bucket `scalable-rag-platform-terraform-state-prod-001` in us-east-1 to store Terraform state files. Enable:
-    1. Versioning (to track state history and recover from mistakes)
-    2. Encryption (SSE-S3) for security
-    3. Keep public access blocked
-- [x] Create a DynamoDB table `terraform-state-lock` for state locking as this is critical to prevent multiple people from applying changes at the same time. Configure:
-    1. Partition key: LockID (Type: String)
-    2. Leave all other settings as default (on-demand capacity)
-
-#### Switch to Terminal
-- [ ] 
 
