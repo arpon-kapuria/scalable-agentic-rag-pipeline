@@ -23,7 +23,7 @@ terraform {
   # This saves the infrastructure state to S3 so multiple engineers can work safely.
   # Note: You must create this bucket manually once before running terraform init.
   backend "s3" {
-    bucket         = "scalable-rag-platform-terraform-state-prod-001" # Unique bucket name
+    bucket         = "scalable-rag-platform-terraform-state-dev-001" # Unique bucket name
     key            = "platform/terraform.tfstate"                     # Path inside bucket
     region         = "us-east-1"                                      # AWS Region
     encrypt        = true                                             # Encrypt state at rest

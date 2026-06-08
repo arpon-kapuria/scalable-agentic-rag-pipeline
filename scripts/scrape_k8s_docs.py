@@ -56,7 +56,7 @@ SEED_URLS = [
     "https://kubernetes.io/docs/concepts/security/pod-security-standards/",
 ]
 
-OUTPUT_DIR = "data-raw/true_data/k8s_docs"
+OUTPUT_DIR = "true_data/k8s_docs"
 MAX_PAGES = 50
 DELAY_SECONDS = 1.0
 

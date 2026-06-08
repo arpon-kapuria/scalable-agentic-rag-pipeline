@@ -43,7 +43,7 @@ class GraphExtractor:
                     self.llm_endpoint,
                     json = {
                         "message": [{"role": "user", "content": prompt}],
-                        "temparature": 0.0, # Deterministic output
+                        "temperature": 0.0, # Deterministic output
                         "max_tokens": 1024
                     }
                 )

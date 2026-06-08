@@ -83,9 +83,9 @@ def main(bucket_name: str, prefix: str):
     # We use a Class Actor (BatchEmbedder) to maintain connection to Ray Serve
     vector_ds = chunked_ds.map_batches(
         BatchEmbedder,
-        concurrency=5, # Run 5 concurrent embedders
-        num_gpus=0.2, # Each embedder needs minimal GPU access (Ray Serve handles heavy lift)
-        batch_size=100 
+        concurrency=2, # ← reduced
+        num_cpus=1, # ← CPU instead of GPU
+        batch_size=10
     )
 
     logger.info("Embedding pipeline configured")
@@ -94,9 +94,9 @@ def main(bucket_name: str, prefix: str):
     # This is slower, so we might set higher concurrency or dedicate nodes
     graph_ds = chunked_ds.map_batches(
         GraphExtractor,
-        concurrency=10, 
-        num_gpus=0.5,   # Needs significant LLM inference power
-        batch_size=5
+        concurrency=2, 
+        num_cpus=1,
+        batch_size=2
     )
 
     logger.info("Graph extraction pipeline configured")

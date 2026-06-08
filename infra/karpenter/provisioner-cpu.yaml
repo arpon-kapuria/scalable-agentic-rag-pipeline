@@ -5,20 +5,19 @@ metadata:
 spec:
   limits:
     resources:
-      cpu: 1000
-  
+      cpu: 8        # ← reduced from 1000 — hard cap for cost control
+
   providerRef:
     name: default
 
   requirements:
     - key: "karpenter.k8s.aws/instance-family"
       operator: In
-      values: ["m6i", "c6i", "r6i"] # Intel Gen 6 (General, Compute, Memory optimized)
-    
+      values: ["t3"]   # ← cheapest instance family only
+
     - key: "karpenter.sh/capacity-type"
       operator: In
-      values: ["spot"] # Use Spot for stateless API pods to save money
-  
-  # Consolidation: actively move pods to pack nodes tighter
+      values: ["spot"]  # ← spot only for maximum savings
+
   consolidation:
     enabled: true

@@ -237,7 +237,8 @@ scalable-agentic-rag/
 │   │   └── requirements.txt
 │   │
 │   ├── gateway/
-│   │   ├── rate_limit.lua                # rate limiting using Redis (Token Bucket Algorithm)
+│   │   ├── nginx.conf                    # loads the Lua script
+│   │   └── rate_limit.lua                # rate limiting using Redis (Token Bucket Algorithm)
 │   │
 │   ├── sandbox/
 │   │   ├── Dockerfile                    # minimal hardened container that runs the sandbox server as a non root user

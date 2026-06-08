@@ -1,0 +1,56 @@
+# Sandbox microservice — runs as isolated pod
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sandbox-service
+  namespace: default
+spec:
+  replicas: 2             # 2 replicas for availability
+  selector:
+    matchLabels:
+      app: sandbox-service
+  template:
+    metadata:
+      labels:
+        app: sandbox-service
+    spec:
+      containers:
+      - name: sandbox
+        image: 371637912340.dkr.ecr.us-east-1.amazonaws.com/rag-sandbox:latest
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"       # matches limits.yaml cpu_limit: 0.5
+            memory: "512Mi"   # matches limits.yaml memory_limit_mb: 512
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+
+---
+# Internal service — only accessible from API pods
+apiVersion: v1
+kind: Service
+metadata:
+  name: sandbox-service
+  namespace: default
+spec:
+  selector:
+    app: sandbox-service
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+  type: ClusterIP   # internal only — not exposed to internet

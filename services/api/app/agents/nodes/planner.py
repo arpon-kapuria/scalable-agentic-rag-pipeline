@@ -1,7 +1,9 @@
 import json
 import logging
 from services.api.app.agents.state import AgentState
+from services.api.app.agents.tokenCount import _count_tokens
 from services.api.app.clients.ray_llm import llm_client
+from libs.observability.metrics import TOKEN_USAGE
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +49,14 @@ async def planner_node(state: AgentState) -> dict:
                 {"role": "user", "content": user_query}
             ],
             temperature=0.0 # Deterministic planning
+        )
+
+        TOKEN_USAGE.labels(model="tinyllama", type="prompt").inc(
+            _count_tokens([{"role": "system", "content": SYSTEM_PROMPT},
+                        {"role": "user", "content": user_query}])
+        )
+        TOKEN_USAGE.labels(model="tinyllama", type="completion").inc(
+            _count_tokens([{"role": "assistant", "content": response_text}])
         )
         
         # Parse JSON

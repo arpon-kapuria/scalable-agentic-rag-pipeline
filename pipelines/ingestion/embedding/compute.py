@@ -29,7 +29,7 @@ class BatchEmbedder:
         try:
             response = self.client.post(
                 self.endpoint,
-                json={"texts": batch["texts"], "task_type": "document"}
+                json={"texts": batch["text"], "task_type": "document"}
             )
             batch["vector"] = response.json()["embeddings"]
             return batch

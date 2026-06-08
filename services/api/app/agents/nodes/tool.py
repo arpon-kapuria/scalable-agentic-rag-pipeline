@@ -44,9 +44,9 @@ async def tool_node(state: AgentState) -> dict:
         logger.info(f"Executing Web Search: {tool_input}")
         result = await web_search_tool(tool_input)
 
-    elif tool_name == "sandbox":
-        logger.info(f"Executing Python Sandbox: {tool_input}")
-        result = await run_python_code(tool_input)
+    # elif tool_name == "sandbox":
+    #     logger.info(f"Executing Python Sandbox: {tool_input}")
+    #     result = await run_python_code(tool_input)
         
     else:
         result = "Unknown tool requested."

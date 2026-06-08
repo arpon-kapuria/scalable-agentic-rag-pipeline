@@ -1,0 +1,123 @@
+User uploads file via browser
+        ↓
+PUT directly to S3 via presigned URL
+(browser → S3, API never touches file)
+        ↓
+S3 triggers event → Lambda/SQS
+        ↓
+s3_event_handler.py::handle_s3_event()
+    parses S3 event → extracts bucket + key
+        ↓
+s3_event_handler.py::submit_ingestion_job()
+    JobSubmissionClient → POST to Ray Head node :8265
+    entrypoint: "python pipelines/ingestion/main.py <bucket> <key>"
+        ↓
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RAY CLUSTER PICKS UP THE JOB
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        ↓
+main.py::main(bucket_name, prefix)
+        ↓
+STEP 1 — READ FROM S3
+    ray.data.read_binary_files(s3://bucket/prefix)
+    Returns Ray Dataset: [{content: bytes, filename: str}, ...]
+    Lazy — nothing loaded into RAM yet
+        ↓
+STEP 2 — PARSE & CHUNK (CPU workers)
+    ds.map_batches(process_batch, num_cpus=1, batch_size=10)
+        ↓
+    process_batch() runs on each batch of 10 files:
+        for each file:
+            document_parsing.py::parse_document(content, filename)
+                → get_extension(filename) → ".pdf" / ".docx" / ".html" / ".txt"
+                → routes to correct loader:
+                    pdf.py::parse_pdf_bytes()
+                        partition_pdf() via unstructured
+                        hi_res OCR + table extraction
+                        returns (raw_text, metadata)
+                    docx.py::parse_docx_bytes()
+                        docx.Document() → paragraphs + tables
+                        returns (raw_text, metadata)
+                    html.py::parse_html_bytes()
+                        BeautifulSoup → strips scripts/styles
+                        returns (raw_text, metadata)
+                ↓
+            splitter.py::split_text(raw_text, chunk_size=512, overlap=50)
+                RecursiveCharacterTextSplitter
+                splits on ["\n\n", "\n", ".", " ", ""]
+                returns [{text: str, metadata: {chunk_index: int}}, ...]
+                ↓
+            for each chunk:
+                metadata.py::enrich_metadata(base_metadata, chunk_text)
+                    adds chunk_hash (MD5), ingested_at, length
+                    merges with file metadata (filename, type)
+        ↓
+    returns {text: [...], metadata: [...]}
+        ↓
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FORK — two parallel branches
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        ↓                    ↓
+BRANCH A                BRANCH B
+Vector Embeddings       Graph Extraction
+        ↓                    ↓
+STEP 3A                 STEP 3B
+chunked_ds.map_batches  chunked_ds.map_batches
+(BatchEmbedder)         (GraphExtractor)
+        ↓                    ↓
+compute.py              extractor.py
+BatchEmbedder           GraphExtractor
+.__call__(batch)        .__call__(batch)
+        ↓                    ↓
+HTTP POST to            HTTP POST to
+ray-serve-embed:8000    ray-serve-llm:8000/llm/chat
+/embed                       ↓
+        ↓               prompt built using
+embedding_engine.py     schema.py::GraphSchema
+EmbeddingDeployment         .get_system_prompt()
+.__call__()                  ↓
+SentenceTransformer     LLM extracts entities
+.encode(texts)          returns JSON:
+returns embeddings      {nodes: [], edges: []}
+        ↓                    ↓
+batch["vector"]         batch["graph_nodes"]
+= embeddings            batch["graph_edges"]
+        ↓                    ↓
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4 — INDEX (Write to DBs)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        ↓                    ↓
+vector_ds               graph_ds
+.write_datasource()     .write_datasource()
+(QdrantIndexer)         (Neo4jIndexer)
+        ↓                    ↓
+qdrant.py               neo4j.py
+QdrantIndexer           Neo4jIndexer
+.write(batch)           .write(batch)
+        ↓                    ↓
+for each row:           flatten all nodes/edges
+    PointStruct(            ↓
+        id=uuid4(),     session.execute_write(
+        vector=row          _merge_graph_data,
+            ["vector"],     all_nodes,
+        payload={           all_edges
+            text,       )
+            filename,       ↓
+            page        Cypher MERGE nodes:
+        }               UNWIND $nodes
+    )                   MERGE (node:Entity
+        ↓                   {name: n.id})
+client.upsert(          SET node.type = n.type
+    collection,             ↓
+    points          Cypher MERGE edges:
+)                   UNWIND $edges
+        ↓           MATCH source, target
+                    MERGE (s)-[r:RELATED
+                        {type}]->(t)
+        ↓                    ↓
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMPLETE
+Chunks searchable in Qdrant (vector search)
+Entities traversable in Neo4j (graph search)
+Future chat queries can now retrieve this document
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

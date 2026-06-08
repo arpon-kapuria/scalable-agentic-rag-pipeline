@@ -1,13 +1,13 @@
 variable "aws_region" {
   description = "AWS region to deploy resources"
   type        = string
-  default     = "us-east-1" # N. Virginia has the best GPU availability
+  default     = "us-east-1"
 }
 
 variable "environment" {
-  description = "Environment name (e.g., dev, prod)"
+  description = "Environment name"
   type        = string
-  default     = "prod"
+  default     = "dev"   # ← changed from prod
 }
 
 variable "cluster_name" {
@@ -19,11 +19,11 @@ variable "cluster_name" {
 variable "vpc_cidr" {
   description = "CIDR block for the VPC"
   type        = string
-  default     = "10.0.0.0/16" # Gives us 65,536 IPs
+  default     = "10.0.0.0/16"
 }
 
 variable "db_password" {
-  description = "Master password for Aurora Postgres"
+  description = "Master password for RDS Postgres"
   type        = string
-  sensitive   = true # Terraform will hide this in logs
+  sensitive   = true
 }

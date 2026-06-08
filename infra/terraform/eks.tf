@@ -3,45 +3,37 @@ module "eks" {
   version = "~> 19.0"
 
   cluster_name    = var.cluster_name
-  cluster_version = "1.32" # Use stable K8s version
+  cluster_version = "1.33"
 
-  # Networking: Connect to the VPC we just created
   vpc_id                         = module.vpc.vpc_id
   subnet_ids                     = module.vpc.private_subnets
-  cluster_endpoint_public_access = true # Allow developer access from internet (secured by IAM)
+  cluster_endpoint_public_access = true
+  enable_irsa                    = true
 
-  # OIDC Provider is REQUIRED for Service Accounts (IRSA)
-  # This allows a specific Pod to assume an AWS IAM Role
-  enable_irsa = true
+  # ← disable KMS encryption entirely for dev setup
+  create_kms_key            = false
+  cluster_encryption_config = {}
 
-  # NODE GROUPS (The "Always On" Baseline)
   eks_managed_node_groups = {
-    # System Node Group: Runs CoreDNS, Karpenter, Ingress Controller
     system = {
       name           = "system-nodes"
-      instance_types = ["m6i.large"] # Modern Intel generation
-      min_size       = 2
-      max_size       = 5
-      desired_size   = 2
-      
-      # Taints prevent App pods from scheduling here accidentally
-      taints = [
-        {
-          key    = "CriticalAddonsOnly"
-          value  = "true"
-          effect = "NO_SCHEDULE"
-        }
-      ]
+      instance_types = ["t3.medium"]  # ← cheapest EKS-compatible, free-tier eligible
+
+      min_size     = 1   # ← reduced from 2 (saves ~$30/month)
+      max_size     = 3
+      desired_size = 1
+
+      # REMOVED taints — with only 1 node, app pods must also run here
+      # In prod: system node is tainted to prevent app pods scheduling there
+      # In dev: we can't afford a dedicated system node
     }
   }
 
-  # Prepare security groups
   node_security_group_tags = {
     "karpenter.sh/discovery" = var.cluster_name
   }
 }
 
-# Export the Cluster Endpoint
 output "cluster_endpoint" {
   value = module.eks.cluster_endpoint
 }

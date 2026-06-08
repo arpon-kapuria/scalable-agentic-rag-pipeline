@@ -1,19 +1,17 @@
 neo4j:
-  name: "neo4j-cluster"
+  name: "neo4j-dev"
   edition: "community"
-  
+
   core:
-    # Community Edition does NOT support Clustering. 
-    # Must be 1. If you need HA, upgrade to Enterprise.
-    numberOfServers: 1 
-    
+    numberOfServers: 1
+
     resources:
       requests:
-        cpu: "2"
-        memory: "8Gi"
-    
+        cpu: "0.5"      # ← reduced from 2
+        memory: "2Gi"   # ← reduced from 8Gi
+
   volumes:
     data:
-      mode: "default" # Dynamic binding
-      storageClassName: "gp3"
-      size: "100Gi"
+      mode: "default"
+      storageClassName: "gp2"   # ← gp2 instead of gp3
+      size: "10Gi"              # ← reduced from 100Gi

@@ -13,9 +13,9 @@
 
 
 ### Dataset Preparation:
-- [ ] Collect 950 random pdfs from this repo [https://github.com/tpn/pdfs.git] and put them into `noisy_data` folder
-- [ ] Using a script, scrape open-source kubernetes official documentation and saved them in different formats such as pdf, docx, txt, html files in the `true_data` directory
-- [ ] Merge both noisy and true data into a single `data` directory
+- [x] Collect 950 random pdfs from this repo [https://github.com/tpn/pdfs.git] and put them into `noisy_data` folder
+- [x] Using a script, scrape open-source kubernetes official documentation and saved them in different formats such as pdf, docx, txt, html files in the `true_data` directory
+- [x] Merge both noisy and true data into a single `data` directory
 
 
 ### Setup Development Workflow
@@ -137,5 +137,4 @@
 
 #### Switch to Terminal
 - [ ] 
-
 

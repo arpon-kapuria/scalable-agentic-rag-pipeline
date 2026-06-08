@@ -1,24 +1,23 @@
-# Cluster Mode: Run 3 replicas for fault tolerance
-replicaCount: 3
+# CHANGED: 3 replicas → 1 replica
+# 3 replicas × 2 CPU + 4Gi RAM each = 6 CPU + 12Gi total
+# Single replica = 1 CPU + 2Gi RAM — fits on t3.medium
+
+replicaCount: 1   # ← no HA, single node for dev
 
 config:
   storage:
-    # Use Memmap for storage (stores vectors on disk but maps to RAM)
-    # Allows handling datasets larger than RAM.
-    on_disk_payload: true
-  
+    on_disk_payload: true   # ← keep — prevents OOM on large datasets
   service:
-    enable_tls: false # TLS handled by Ingress/Mesh
+    enable_tls: false
 
 resources:
   requests:
-    cpu: "2"
-    memory: "4Gi"
+    cpu: "0.5"      # ← reduced from 2
+    memory: "1Gi"   # ← reduced from 4Gi
   limits:
-    cpu: "4"
-    memory: "8Gi"
+    cpu: "1"        # ← reduced from 4
+    memory: "2Gi"   # ← reduced from 8Gi
 
-# Persistence: Use fast SSDs (io1 or gp3)
 persistence:
-  size: 50Gi
-  storageClassName: gp3
+  size: 10Gi              # ← reduced from 50Gi
+  storageClassName: gp2   # ← gp2 instead of gp3, available by default on EKS

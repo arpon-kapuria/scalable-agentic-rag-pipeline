@@ -1,15 +1,9 @@
+# MINIMAL SETUP — replaces llama-7b with TinyLlama for CPU inference
 model_config:
-  model_id: "meta-llama/Meta-Llama-3-8B-Instruct"
-  
-  # 8B fits easily on a single T4 or A10 GPU
-  quantization: "awq" 
-  
-  max_model_len: 8192
-  
-  # Higher throughput possible due to small size
-  max_num_seqs: 256 
-  
-  gpu_memory_utilization: 0.85
-  tensor_parallel_size: 1
-  
-  stop_token_ids: [128001, 128009]
+  model_id: "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+quantization: null         # ← removed, AWQ requires GPU
+max_model_len: 2048        # ← reduced from 8192
+max_num_seqs: 4            # ← reduced from 256
+dtype: "float32"           # ← CPU compatible
+# gpu_memory_utilization removed — no GPU
+# tensor_parallel_size removed — no GPU

@@ -15,7 +15,11 @@ echo "🔹 1. Deleting Kubernetes Resources (Helm)..."
 helm uninstall api || true
 helm uninstall qdrant || true
 helm uninstall ray-cluster || true
+helm uninstall kuberay-operator || true
+helm uninstall external-secrets || true
+helm uninstall ingress-nginx || true
 kubectl delete -f deploy/ray/ || true
+kubectl delete -f deploy/secrets/ || true
 
 echo "🔹 2. Waiting for LBs to cleanup..."
 sleep 20

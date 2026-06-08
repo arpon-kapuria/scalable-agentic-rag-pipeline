@@ -1,6 +1,7 @@
 import os
 import logging
 from urllib.parse import unquote_plus
+import boto3
 from ray.job_submission import JobSubmissionClient
 
 # Config
@@ -43,7 +44,17 @@ def submit_ingestion_job(bucket: str, file_key: str):
             # Working dir contains our pipeline code
             runtime_env={
                 "working_dir": "./", 
-                "pip": "pipelines/jobs/requirements-ray.txt"
+                "pip": [
+                    "boto3>=1.42.63",
+                    "langchain>=1.2.10",
+                    "langchain-text-splitters>=1.1.1",
+                    "neo4j>=6.1.0",
+                    "qdrant-client>=1.17.0",
+                    "sentence-transformers>=5.2.3",
+                    "unstructured[docx,pdf]>=0.21.5",
+                    "httpx>=0.28.1",
+                    "ray[default]>=2.54.0"
+                ]  
             }
         )
     

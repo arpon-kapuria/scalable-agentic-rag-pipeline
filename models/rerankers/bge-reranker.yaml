@@ -1,11 +1,12 @@
-model_config:
-  model_id: "BAAI/bge-reranker-v2-m3"
-  
-  # Precision settings
-  dtype: "float16"
-  
-  # Max length for the input pair (Query + Document)
-  max_length: 512
-  
-  # Batch size for reranking
-  batch_size: 16
+# NOT USED IN CURRENT PIPELINE
+# Reranker improves retrieval quality by re-scoring retrieved chunks
+# before passing to LLM — adds latency but improves accuracy
+#
+# To enable: create a reranker node in agents/nodes/
+# and call it between retriever and responder
+#
+# model_config:
+#   model_id: "BAAI/bge-reranker-v2-m3"
+#   dtype: "float32"     # use float32 for CPU
+#   max_length: 512
+#   batch_size: 4        # reduced from 16 for CPU

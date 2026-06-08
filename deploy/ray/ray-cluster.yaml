@@ -4,89 +4,45 @@ metadata:
   name: rag-ray-cluster
   namespace: default
 spec:
-  # Ray Version: Must match your Python SDK version
   rayVersion: '2.9.0'
-  
-  ###################################
-  # HEAD NODE (The Manager)
-  # Orchestrates tasks but does no heavy lifting.
-  ###################################
+
   headGroupSpec:
-    serviceType: ClusterIP # Internal communication only
+    serviceType: ClusterIP
     rayStartParams:
-      dashboard-host: '0.0.0.0' # Enable dashboard for monitoring
-      num-cpus: '0' # Don't run tasks on head node
-    
+      dashboard-host: '0.0.0.0'
+      num-cpus: '0'
     template:
       spec:
         containers:
         - name: ray-head
-          image: rayproject/ray:2.9.0-py310-gpu
+          image: rayproject/ray:2.9.0-py310   # ← CPU image, not GPU
           resources:
             limits:
-              cpu: "2"
-              memory: "8Gi"
+              cpu: "1"        # ← reduced from 2
+              memory: "2Gi"   # ← reduced from 8Gi
             requests:
-              cpu: "2"
-              memory: "8Gi"
-          ports:
-          - containerPort: 6379 # Redis port (Ray uses Redis internally)
-          - containerPort: 8265 # Dashboard port
+              cpu: "1"
+              memory: "2Gi"
 
-  ###################################
-  # WORKER GROUPS (The Muscle)
-  ###################################
   workerGroupSpecs:
-  
-  # GROUP A: CPU Workers (For Ingestion: PDF Parsing, Text Splitting)
-  # Autoscales from 1 to 50 nodes based on load.
   - groupName: cpu-workers
     replicas: 1
     minReplicas: 1
-    maxReplicas: 50
+    maxReplicas: 3        # ← reduced from 50
     rayStartParams: {}
     template:
       spec:
         containers:
         - name: ray-worker
-          image: rayproject/ray:2.9.0-py310 # CPU Image
+          image: rayproject/ray:2.9.0-py310   # ← CPU image
           resources:
             limits:
-              cpu: "8"      # Use powerful c6i instances
-              memory: "32Gi"
+              cpu: "1"        # ← reduced from 8
+              memory: "2Gi"   # ← reduced from 32Gi
             requests:
-              cpu: "8"
-              memory: "32Gi"
-        # Node Selector: Tells Karpenter to use CPU nodes
-        nodeSelector:
-          karpenter.k8s.aws/instance-family: "c6i"
+              cpu: "1"
+              memory: "2Gi"
 
-  # GROUP B: GPU Workers (For Embeddings, Graph Extraction, LLM Inference)
-  # Autoscales based on GPU demand.
-  - groupName: gpu-workers
-    replicas: 0
-    minReplicas: 0
-    maxReplicas: 20 # Budget constraint (20 x A10G is expensive but powerful)
-    rayStartParams: {}
-    template:
-      spec:
-        containers:
-        - name: ray-worker
-          image: rayproject/ray:2.9.0-py310-gpu
-          resources:
-            limits:
-              cpu: "4"
-              memory: "32Gi"
-              nvidia.com/gpu: 1 # Request 1 GPU per pod
-            requests:
-              cpu: "4"
-              memory: "32Gi"
-              nvidia.com/gpu: 1
-        # Node Selector: Tells Karpenter to use GPU nodes
-        nodeSelector:
-          karpenter.k8s.aws/instance-category: "g"
-        # Tolerations: Allow scheduling on Tainted GPU nodes
-        tolerations:
-        - key: "nvidia.com/gpu"
-          operator: "Exists"
-          effect: "NoSchedule"
+  # GPU WORKER GROUP REMOVED ENTIRELY
+  # Not feasible on $180 credits alongside other infrastructure
+  # Add back when upgrading to paid account

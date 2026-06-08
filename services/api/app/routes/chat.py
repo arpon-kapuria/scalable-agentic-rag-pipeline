@@ -19,6 +19,7 @@ Save to memory + update cache in background
 import uuid
 import json
 import logging
+import time
 from typing import AsyncGenerator, Optional
 
 from fastapi import APIRouter, Depends, BackgroundTasks
@@ -33,6 +34,7 @@ from services.api.app.agents.graph import agent_app
 from services.api.app.agents.state import AgentState
 from services.api.app.enhancers.query_rewriter import rewrite_query
 from services.api.app.enhancers.hyde import generate_hypothetical_document
+from libs.observability.metrics import track_request, REQUEST_LATENCY
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -149,6 +151,7 @@ async def chat_stream(
 
     # 7. Streaming Generator
     async def event_generator() -> AsyncGenerator[str, None]:
+        start_time = time.time()
         final_answer = ""
 
         try:
@@ -185,11 +188,18 @@ async def chat_stream(
                 await memory.add_message(session_id, "assistant", final_answer, user_id)
                 await cache.set_cached_response(req.message, final_answer)
 
+            track_request("POST", "/api/v1/chat/stream", 200)
         except Exception as e:
+            track_request("POST", "/api/v1/chat/stream", 500)
             logger.error(f"Error in chat stream: {e}", exc_info=True)
             yield json.dumps({
                 "type": "error",
                 "content": "An internal error occurred."
             }) + "\n"
+        
+        finally:
+            REQUEST_LATENCY.labels(
+                endpoint="/api/v1/chat/stream"
+            ).observe(time.time() - start_time)
 
     return StreamingResponse(event_generator(), media_type="application/x-ndjson")

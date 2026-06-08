@@ -8,6 +8,8 @@ from services.api.app.cache.redis import redis_client
 from services.api.app.memory.models import Base, ChatHistory, Feedback
 from services.api.app.memory.postgres import engine
 from services.api.app.routes import chat, upload, health, feedback
+from services.api.app.observability import setup_observability  
+from services.api.app.auth.jwt import login, Token       
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -26,7 +28,6 @@ async def lifespan(app: FastAPI):
     await redis_client.connect()
     await llm_client.start()
     await embed_client.start()
-
     await qdrant_client.init_collections()
     
     yield
@@ -41,6 +42,17 @@ async def lifespan(app: FastAPI):
 
 # FastAPI Application
 app = FastAPI(title="Enterprise RAG Platform", version="1.0.0", lifespan=lifespan)
+
+setup_observability(app)
+
+# Auth route
+app.add_api_route(
+    "/api/v1/auth/token",
+    login,
+    methods=["POST"],
+    response_model=Token,
+    tags=["Auth"]
+)
 
 # Include Routes
 app.include_router(chat.router, prefix="/api/v1/chat", tags=["Chat"])
