@@ -2,10 +2,6 @@
 
 # Scalable Agentic RAG Pipeline
 
-**A cloud-native platform for large-scale retrieval, reasoning, and LLM-powered knowledge processing.**
-
-Built to support production-grade agentic workflows through hybrid retrieval (vector + graph), distributed inference, scalable orchestration, and end-to-end observability. The platform combines LangGraph agents, Ray-based distributed execution, vLLM inference, knowledge graphs, and Kubernetes-native infrastructure to enable reliable and cost-efficient deployment of enterprise AI systems.
-
 <br>
 
 <p align="center">
@@ -41,16 +37,20 @@ Built to support production-grade agentic workflows through hybrid retrieval (ve
   <img src="https://img.shields.io/badge/Grafana-F46800?logo=grafana&logoColor=white" />
 </p>
 
-<p align="center">
-  <img src="./assets/system-architecture-overview.png"/>
-</p>
+**A cloud-native platform for large-scale retrieval, reasoning, and LLM-powered knowledge processing.**
+
+Built to support production-grade agentic workflows through hybrid retrieval (vector + graph), distributed inference, scalable orchestration, and end-to-end observability. The platform combines LangGraph agents, Ray-based distributed execution, vLLM inference, knowledge graphs, and Kubernetes-native infrastructure to enable reliable and cost-efficient deployment of enterprise AI systems.
+
+
 
 </div>
 
----
 
-## 📂 Architecture Overview
+## 📂 Project Overview
 
+<p align="center">
+  <img src="./assets/system-architecture-overview.png"/>
+</p>
 
 ```
 scalable-agentic-rag-pipeline/
@@ -262,8 +262,6 @@ scalable-agentic-rag-pipeline/
 ├── README.md
 └── uv.lock
 ```
-
----
 
 ## 📚 Getting Started Guide
 
