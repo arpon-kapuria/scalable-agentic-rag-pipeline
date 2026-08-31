@@ -19,19 +19,33 @@ install:
 
 # Run Local Development Environment (Docker services)
 # 8GB RAM dev box: never bring up the full stack. Usage: make up PROFILE=core
+# or multiple: make up PROFILE=core,cache
 # See PROJECT_INSTRUCTIONS.md's profile table for which profiles a given phase needs.
+#
+# ifndef/else/endif below are real Makefile conditionals (evaluated at parse
+# time), so they must NOT be tab-indented -- only the actual recipe lines
+# (docker compose ...) get a leading tab. Indenting the conditionals turns
+# them into literal recipe text, and $(error ...) inside recipe text gets
+# expanded unconditionally regardless of whether PROFILE is set -- that was
+# the bug: `make up PROFILE=core` failed every time, not just when PROFILE
+# was missing.
+comma := ,
+empty :=
+space := $(empty) $(empty)
+profile_flags = $(foreach p,$(subst $(comma),$(space),$(PROFILE)),--profile $(p))
+
 up:
-	ifndef PROFILE
-		$(error PROFILE is required, e.g. make up PROFILE=core (see PROJECT_INSTRUCTIONS.md profile table))
-	endif
-		docker compose --profile $(PROFILE) up -d
+ifndef PROFILE
+	$(error PROFILE is required, e.g. make up PROFILE=core (see PROJECT_INSTRUCTIONS.md profile table))
+endif
+	docker compose $(profile_flags) up -d
 
 down:
-	ifndef PROFILE
-		docker compose down
-	else
-		docker compose --profile $(PROFILE) down
-	endif
+ifndef PROFILE
+	docker compose down
+else
+	docker compose $(profile_flags) down
+endif
 
 # Run the API locally (Hot Reload)
 dev:

@@ -2,12 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import text
 from services.api.app.memory.postgres import AsyncSessionLocal
-from services.api.app.auth.jwt import get_current_user
+from services.api.app.session.dependency import get_corpus_id
 
 router = APIRouter()
 
 class FeedbackRequest(BaseModel):
-    session_id: str
     message_id: int # ID of the assistant message from chat_history
     score: int # 1 (Like) or -1 (Dislike)
     comment: str | None = None
@@ -15,7 +14,7 @@ class FeedbackRequest(BaseModel):
 @router.post("/")
 async def submit_feedback(
     req: FeedbackRequest,
-    user: dict = Depends(get_current_user)
+    corpus_id: str = Depends(get_corpus_id)
 ):
     """
     Submit user feedback for an AI response.
@@ -26,12 +25,11 @@ async def submit_feedback(
             # Here, let's assume a 'feedback' table exists (simple raw SQL for demo)
             await session.execute(
                 text("""
-                INSERT INTO feedback (session_id, user_id, message_id, score, comment)
-                VALUES (:sid, :uid, :mid, :score, :comment)
+                INSERT INTO feedback (corpus_id, message_id, score, comment)
+                VALUES (:cid, :mid, :score, :comment)
                 """),
                 {
-                    "sid": req.session_id,
-                    "uid": user["id"],
+                    "cid": corpus_id,
                     "mid": req.message_id,
                     "score": req.score,
                     "comment": req.comment

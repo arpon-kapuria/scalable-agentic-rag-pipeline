@@ -3,7 +3,7 @@ import boto3
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from services.api.app.config import settings
-from services.api.app.auth.jwt import get_current_user 
+from services.api.app.session.dependency import get_corpus_id
 import uuid
 
 router = APIRouter()
@@ -29,7 +29,7 @@ class PresignedURLResponse(BaseModel):
 @router.post("/generate-presigned-url", response_model=PresignedURLResponse)
 async def generate_upload_url(
     req: PresignedURLRequest,
-    user: dict = Depends(get_current_user) # Secure endpoint
+    corpus_id: str = Depends(get_corpus_id)
 ):
     """
     Generates a secure, temporary URL for the frontend to upload a file directly to S3.
@@ -38,25 +38,24 @@ async def generate_upload_url(
     # 1. Generate a unique file ID (UUID) to prevent overwrites
     file_id = str(uuid.uuid4())
     extension = req.filename.split('.')[-1] if '.' in req.filename else "bin"
-    s3_key = f"uploads/{user['id']}/{file_id}.{extension}"
+    s3_key = f"uploads/{corpus_id}/{file_id}.{extension}"
 
     try:
         # 2. Generate the Presigned URL
         # The frontend uses this URL with a PUT request.
         url = await asyncio.to_thread(
-            s3_client.generate_presigned_url(
-                ClientMethod='put_object',
-                Params={
-                    'Bucket': settings.S3_BUCKET_NAME,
-                    'Key': s3_key,
-                    'ContentType': req.content_type,
-                    'Metadata': {
-                        'original_filename': req.filename,
-                        'user_id': user['id']
-                    }
+            s3_client.generate_presigned_url,
+            ClientMethod='put_object',
+            Params={
+                'Bucket': settings.S3_BUCKET_NAME,
+                'Key': s3_key,
+                'ContentType': req.content_type,
+                'Metadata': {
+                    'original_filename': req.filename,
+                    'corpus_id': corpus_id
                 },
-                ExpiresIn=3600 # URL valid for 1 hour
-            )
+            },
+            ExpiresIn=3600 # URL valid for 1 hour
         )
         
         return PresignedURLResponse(

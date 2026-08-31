@@ -1,7 +1,6 @@
 import logging
 from services.api.app.agents import state
 from services.api.app.agents.state import AgentState
-from services.api.app.tools.calculator import calculate
 from services.api.app.tools.graph_search import search_graph_tool
 from services.api.app.tools.web_search import web_search_tool
 from services.api.app.tools.sandbox import run_python_code
@@ -23,16 +22,12 @@ async def tool_node(state: AgentState) -> dict:
 
     # Assume Planner passed specific instruction in state (simplified)
     # Real implementations use OpenAI function calling API or JSON parsing
-    tool_name = state.get("tool_choice") or "calculator"
-    tool_input = state.get("tool_input") or "0+0"
+    tool_name = state.get("tool_choice") or "web_search"
+    tool_input = state.get("tool_input") or ""
     
     result = ""
     
-    if tool_name == "calculator":
-        logger.info(f"Executing Calculator: {tool_input}")
-        result = calculate(tool_input)
-        
-    elif tool_name == "graph_search":
+    if tool_name == "graph_search":
         logger.info(f"Executing Graph Search: {tool_input}")
         result = await search_graph_tool(tool_input)
 

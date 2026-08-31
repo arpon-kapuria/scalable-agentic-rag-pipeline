@@ -14,10 +14,18 @@ class VectorDBClient:
             # In prod, we might enable gRPC for slightly faster performance
             prefer_grpc=True 
         )
+        self._collections_ready = False
 
-    # On app startup → Qdrant collections are created automatically
-    # MIGHT GET DELETED
+    # Lazy, not called from app startup — connects to Qdrant on first
+    # actual use instead of unconditionally at boot. Keeps the app
+    # bootable on whatever Docker profile is currently up (e.g. Phase 2's
+    # core+cache, no vector profile), matching neo4j_client/embed_client's
+    # existing lazy-connect pattern. Guarded by _collections_ready so
+    # concurrent first-callers don't all race to create collections.
     async def init_collections(self):
+        if self._collections_ready:
+            return
+
         collections = await self.client.get_collections()
         existing = {c.name for c in collections.collections}
 
@@ -35,10 +43,13 @@ class VectorDBClient:
                 vectors_config=VectorParams(size=768, distance=Distance.COSINE),
             )
 
+        self._collections_ready = True
+
     async def search(self, query_vector: list[float], limit: int = 5):
         """
         Performs Semantic Search.
         """
+        await self.init_collections()
         response = await self.client.query_points(
             # Uses approximate Nearest Neighbor with cosine similarity (default search unless mentioned)
             collection_name=settings.QDRANT_COLLECTION,
@@ -57,6 +68,7 @@ class VectorDBClient:
         limit: int = 1,
         score_threshold: float = 0.95
     ):
+        await self.init_collections()
         response = await self.client.query_points(
             collection_name=collection_name,
             query=query_vector,

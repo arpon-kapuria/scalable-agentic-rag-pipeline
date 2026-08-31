@@ -14,26 +14,25 @@ class PostgresMemory:
     """
     Manager for persisting conversation state.
     """
-    async def add_message(self, session_id: str, role: str, content: str, user_id: str):
+    async def add_message(self, corpus_id: str, role: str, content: str):
         async with AsyncSessionLocal() as session:
             async with session.begin():
                 msg = ChatHistory(
-                    session_id=session_id,
+                    corpus_id=corpus_id,
                     role=role,
                     content=content,
-                    user_id=user_id
                 )
                 session.add(msg)
                 # Commit happens automatically via 'async with session.begin()'
 
-    async def get_history(self, session_id: str, limit: int = 10):
+    async def get_history(self, corpus_id: str, limit: int = 10):
         """
         Fetch last N messages for context window.
         """
         async with AsyncSessionLocal() as session:
             result = await session.execute(
                 select(ChatHistory)
-                .where(ChatHistory.session_id == session_id)
+                .where(ChatHistory.corpus_id == corpus_id)
                 .order_by(ChatHistory.created_at.desc())
                 .limit(limit)
             )

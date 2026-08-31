@@ -13,11 +13,11 @@ class ChatHistory(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     
-    # Session ID links messages to a specific conversation thread
-    session_id = Column(String(255), index=True, nullable=False)
-    
-    # User ID for multi-tenancy
-    user_id = Column(String(255), index=True, nullable=False)
+    # corpus_id (= session_id) links messages to a conversation thread AND
+    # scopes multi-tenancy — one column, not two, since a session has
+    # exactly one corpus/conversation. Derived server-side from the
+    # session cookie, never client-supplied.
+    corpus_id = Column(String(255), index=True, nullable=False)
     
     # Role: 'user', 'assistant', or 'system'
     role = Column(String(50), nullable=False)
@@ -39,8 +39,7 @@ class Feedback(Base):
     __tablename__ = "feedback"
     
     id         = Column(Integer, primary_key=True, autoincrement=True)
-    session_id = Column(String(255), nullable=False)
-    user_id    = Column(String(255), nullable=False)
+    corpus_id  = Column(String(255), nullable=False)
     message_id = Column(Integer, nullable=False)
     score      = Column(Integer, nullable=False)   # 1 or -1
     comment    = Column(Text, nullable=True)

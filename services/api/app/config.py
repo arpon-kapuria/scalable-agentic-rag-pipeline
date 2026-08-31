@@ -63,6 +63,10 @@ class Settings(BaseSettings):
     VLLM_MODAL_API_KEY: Optional[str] = None
     VLLM_MODAL_MODELS: Annotated[List[str], NoDecode] = []
 
+    # Session & corpus isolation (Phase 2). No login — corpus_id is issued
+    # via httpOnly cookie; this is the sliding-window inactivity TTL for it.
+    SESSION_TTL_MINUTES: int = 60
+
     @field_validator(
         "GROQ_MODELS", "OPENROUTER_MODELS", "OLLAMA_MODELS",
         "VLLM_METAL_MODELS", "VLLM_MODAL_MODELS",
@@ -75,10 +79,6 @@ class Settings(BaseSettings):
         if isinstance(v, str):
             return [item.strip() for item in v.split(",") if item.strip()]
         return v
-
-    # Security
-    JWT_SECRET_KEY: str
-    JWT_ALGORITHM: str = "HS256"
 
     class Config:
         env_file = ".env" if os.path.exists(".env") else None

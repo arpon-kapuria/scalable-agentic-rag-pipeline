@@ -12,14 +12,14 @@ Analyze the User Query and Conversation History.
 Decide the next step:
 1. If the user greets (Hello/Hi), output "direct_answer".
 2. If the user asks a specific question requiring data, output "retrieve".
-3. If the user asks for math/code, output "tool_use".
+3. If the user asks for code execution, output "tool_use".
 
 Output JSON format ONLY:
 {
     "action": "retrieve" | "direct_answer" | "tool_use",
     "refined_query": "The standalone search query",
     "reasoning": "Why you chose this action",
-    "tool_choice": "calculator" | "graph_search" | "web_search" | null,
+    "tool_choice": "graph_search" | "web_search" | null,
     "tool_input": "The exact input to pass to the tool" | null
 }
 """

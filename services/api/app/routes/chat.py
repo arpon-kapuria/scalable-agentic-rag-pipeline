@@ -16,16 +16,15 @@ Stream agent events (planner → retriever → responder)
 Save to memory + update cache in background
 """
 
-import uuid
 import json
 import logging
-from typing import AsyncGenerator, Optional
+from typing import AsyncGenerator
 
 from fastapi import APIRouter, Depends, BackgroundTasks
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from services.api.app.auth.jwt import get_current_user
+from services.api.app.session.dependency import get_corpus_id
 from services.api.app.cache.semantic import SemanticCache, semantic_cache as global_cache
 from services.api.app.memory.postgres import PostgresMemory, postgres_memory as global_memory
 from services.api.app.clients.ray_llm import RayLLMClient, llm_client as global_llm
@@ -52,7 +51,6 @@ def get_llm_client() -> RayLLMClient:
 
 class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, description="The user's query")
-    session_id: Optional[str] = Field(default=None, description="UUID for the conversation thread")
 
     # Optional enhancement flags — both default to False
     # Set to True to enable query rewriting and HyDE
@@ -65,7 +63,7 @@ class ChatRequest(BaseModel):
 async def chat_stream(
     req: ChatRequest,
     background_tasks: BackgroundTasks,
-    user: dict = Depends(get_current_user),
+    corpus_id: str = Depends(get_corpus_id),
     cache: SemanticCache = Depends(get_semantic_cache),
     memory: PostgresMemory = Depends(get_memory),
     llm: RayLLMClient = Depends(get_llm_client)
@@ -78,32 +76,28 @@ async def chat_stream(
         use_query_rewriter: resolves "it", "they", "that" using conversation history
         use_hyde: generates a hypothetical document to improve vector similarity search
     """
-    # 1. Setup Session Context
-    session_id = req.session_id or str(uuid.uuid4())
-    user_id = user["id"]
-
-    logger.info(f"Chat request for session {session_id} from user {user_id}")
+    logger.info(f"Chat request for corpus {corpus_id}")
 
     # 2. Semantic Cache Check (Fast Path)
     cached_ans = await cache.get_cached_response(req.message)
 
     if cached_ans:
-        logger.info(f"Cache hit for session {session_id}")
+        logger.info(f"Cache hit for corpus {corpus_id}")
 
         async def stream_cache():
             yield json.dumps({
                 "type": "answer",
                 "content": cached_ans,
-                "session_id": session_id
+                "corpus_id": corpus_id
             }) + "\n"
 
-        background_tasks.add_task(memory.add_message, session_id, "user", req.message, user_id)
-        background_tasks.add_task(memory.add_message, session_id, "assistant", cached_ans, user_id)
+        background_tasks.add_task(memory.add_message, corpus_id, "user", req.message)
+        background_tasks.add_task(memory.add_message, corpus_id, "assistant", cached_ans)
 
         return StreamingResponse(stream_cache(), media_type="application/x-ndjson")
 
     # 3. Load Conversation History
-    history_objs = await memory.get_history(session_id, limit=6)
+    history_objs = await memory.get_history(corpus_id, limit=6)
     history_dicts = [
         {"role": msg.role, "content": msg.content} for msg in history_objs
     ]
@@ -154,7 +148,7 @@ async def chat_stream(
         try:
             async for event in agent_app.astream(
                 initial_state,
-                config={"configurable": {"llm": llm, "user_id": user_id}}
+                config={"configurable": {"llm": llm, "corpus_id": corpus_id}}
             ):
                 node_name = list(event.keys())[0]
                 node_data = event[node_name]
@@ -163,7 +157,7 @@ async def chat_stream(
                 yield json.dumps({
                     "type": "status",
                     "node": node_name,
-                    "session_id": session_id,
+                    "corpus_id": corpus_id,
                     "info": f"Completed step: {node_name}"
                 }) + "\n"
 
@@ -176,13 +170,13 @@ async def chat_stream(
                         yield json.dumps({
                             "type": "answer",
                             "content": final_answer,
-                            "session_id": session_id
+                            "corpus_id": corpus_id
                         }) + "\n"
 
             # 8. Post-Processing
             if final_answer:
-                await memory.add_message(session_id, "user", req.message, user_id)
-                await memory.add_message(session_id, "assistant", final_answer, user_id)
+                await memory.add_message(corpus_id, "user", req.message)
+                await memory.add_message(corpus_id, "assistant", final_answer)
                 await cache.set_cached_response(req.message, final_answer)
 
         except Exception as e:
