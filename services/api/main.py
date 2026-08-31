@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from services.api.app.clients.neo4j import neo4j_client
 from services.api.app.clients.qdrant import qdrant_client
-from services.api.app.clients.ray_llm import llm_client
+from services.api.app.clients.llm.factory import llm_client
 from services.api.app.clients.ray_embed import embed_client
 from services.api.app.cache.redis import redis_client
 from services.api.app.memory.models import Base, ChatHistory, Feedback
@@ -40,7 +40,7 @@ async def lifespan(app: FastAPI):
     await qdrant_client.close()
 
 # FastAPI Application
-app = FastAPI(title="Enterprise RAG Platform", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="OmniRAG - Scalable Agentic RAG Platform", version="1.0.0", lifespan=lifespan)
 
 # Include Routes
 app.include_router(chat.router, prefix="/api/v1/chat", tags=["Chat"])

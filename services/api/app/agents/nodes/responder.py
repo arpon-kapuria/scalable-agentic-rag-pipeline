@@ -1,5 +1,5 @@
 from services.api.app.agents.state import AgentState
-from services.api.app.clients.ray_llm import llm_client
+from services.api.app.clients.llm.factory import llm_client
 
 async def generate_node(state: AgentState) -> dict:
     """

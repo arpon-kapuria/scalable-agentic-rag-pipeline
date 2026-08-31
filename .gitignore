@@ -126,7 +126,13 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env*
+# .env* previously blocked .env.example from ever being committed (Phase 0
+# claimed it was added but it silently never landed). Ignore real env files
+# explicitly, whitelist the example.
+.env
+.env.local
+.env.*.local
+!.env.example
 .venv
 env/
 venv/

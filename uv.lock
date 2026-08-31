@@ -1940,6 +1940,87 @@ wheels = [
 ]
 
 [[package]]
+name = "omnirag"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "boto3" },
+    { name = "httpx" },
+    { name = "tqdm" },
+]
+
+[package.dev-dependencies]
+api = [
+    { name = "fastapi" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+    { name = "pyjwt" },
+    { name = "uvicorn", extra = ["standard"] },
+]
+dev = [
+    { name = "pytest" },
+    { name = "ruff" },
+]
+ingestion = [
+    { name = "beautifulsoup4" },
+    { name = "boto3" },
+    { name = "httpx" },
+    { name = "langchain" },
+    { name = "langchain-text-splitters" },
+    { name = "neo4j" },
+    { name = "qdrant-client" },
+    { name = "sentence-transformers" },
+    { name = "unstructured", extra = ["docx", "pdf"] },
+]
+observability = [
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-exporter-otlp" },
+    { name = "opentelemetry-instrumentation-fastapi" },
+    { name = "opentelemetry-sdk" },
+]
+ray = [
+    { name = "ray", extra = ["default"] },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "boto3", specifier = ">=1.42.63" },
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "tqdm", specifier = ">=4.67.3" },
+]
+
+[package.metadata.requires-dev]
+api = [
+    { name = "fastapi", specifier = ">=0.135.1" },
+    { name = "pydantic", specifier = ">=2.12.5" },
+    { name = "pydantic-settings", specifier = ">=2.13.1" },
+    { name = "pyjwt", specifier = ">=2.12.1" },
+    { name = "uvicorn", extras = ["standard"], specifier = ">=0.41.0" },
+]
+dev = [
+    { name = "pytest", specifier = ">=9.0.2" },
+    { name = "ruff", specifier = ">=0.15.5" },
+]
+ingestion = [
+    { name = "beautifulsoup4", specifier = ">=4.14.3" },
+    { name = "boto3", specifier = ">=1.42.63" },
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "langchain", specifier = ">=1.2.10" },
+    { name = "langchain-text-splitters", specifier = ">=1.1.1" },
+    { name = "neo4j", specifier = ">=6.1.0" },
+    { name = "qdrant-client", specifier = ">=1.17.0" },
+    { name = "sentence-transformers", specifier = ">=5.2.3" },
+    { name = "unstructured", extras = ["docx", "pdf"], specifier = ">=0.21.5" },
+]
+observability = [
+    { name = "opentelemetry-api", specifier = ">=1.40.0" },
+    { name = "opentelemetry-exporter-otlp", specifier = ">=1.40.0" },
+    { name = "opentelemetry-instrumentation-fastapi", specifier = ">=0.61b0" },
+    { name = "opentelemetry-sdk", specifier = ">=1.40.0" },
+]
+ray = [{ name = "ray", extras = ["default"], specifier = ">=2.54.0" }]
+
+[[package]]
 name = "onnx"
 version = "1.20.1"
 source = { registry = "https://pypi.org/simple" }
@@ -3375,87 +3456,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/05/e5/cb4b713c8a93469e3c5be7c3f8d77d307e65fe89673e731f5c2bfd0a9237/safetensors-0.7.0-cp38-abi3-win32.whl", hash = "sha256:c74af94bf3ac15ac4d0f2a7c7b4663a15f8c2ab15ed0fc7531ca61d0835eccba", size = 326423, upload-time = "2025-11-19T15:18:45.74Z" },
     { url = "https://files.pythonhosted.org/packages/5d/e6/ec8471c8072382cb91233ba7267fd931219753bb43814cbc71757bfd4dab/safetensors-0.7.0-cp38-abi3-win_amd64.whl", hash = "sha256:d1239932053f56f3456f32eb9625590cc7582e905021f94636202a864d470755", size = 341380, upload-time = "2025-11-19T15:18:44.427Z" },
 ]
-
-[[package]]
-name = "scalable-agentic-rag"
-version = "0.1.0"
-source = { virtual = "." }
-dependencies = [
-    { name = "boto3" },
-    { name = "httpx" },
-    { name = "tqdm" },
-]
-
-[package.dev-dependencies]
-api = [
-    { name = "fastapi" },
-    { name = "pydantic" },
-    { name = "pydantic-settings" },
-    { name = "pyjwt" },
-    { name = "uvicorn", extra = ["standard"] },
-]
-dev = [
-    { name = "pytest" },
-    { name = "ruff" },
-]
-ingestion = [
-    { name = "beautifulsoup4" },
-    { name = "boto3" },
-    { name = "httpx" },
-    { name = "langchain" },
-    { name = "langchain-text-splitters" },
-    { name = "neo4j" },
-    { name = "qdrant-client" },
-    { name = "sentence-transformers" },
-    { name = "unstructured", extra = ["docx", "pdf"] },
-]
-observability = [
-    { name = "opentelemetry-api" },
-    { name = "opentelemetry-exporter-otlp" },
-    { name = "opentelemetry-instrumentation-fastapi" },
-    { name = "opentelemetry-sdk" },
-]
-ray = [
-    { name = "ray", extra = ["default"] },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "boto3", specifier = ">=1.42.63" },
-    { name = "httpx", specifier = ">=0.28.1" },
-    { name = "tqdm", specifier = ">=4.67.3" },
-]
-
-[package.metadata.requires-dev]
-api = [
-    { name = "fastapi", specifier = ">=0.135.1" },
-    { name = "pydantic", specifier = ">=2.12.5" },
-    { name = "pydantic-settings", specifier = ">=2.13.1" },
-    { name = "pyjwt", specifier = ">=2.12.1" },
-    { name = "uvicorn", extras = ["standard"], specifier = ">=0.41.0" },
-]
-dev = [
-    { name = "pytest", specifier = ">=9.0.2" },
-    { name = "ruff", specifier = ">=0.15.5" },
-]
-ingestion = [
-    { name = "beautifulsoup4", specifier = ">=4.14.3" },
-    { name = "boto3", specifier = ">=1.42.63" },
-    { name = "httpx", specifier = ">=0.28.1" },
-    { name = "langchain", specifier = ">=1.2.10" },
-    { name = "langchain-text-splitters", specifier = ">=1.1.1" },
-    { name = "neo4j", specifier = ">=6.1.0" },
-    { name = "qdrant-client", specifier = ">=1.17.0" },
-    { name = "sentence-transformers", specifier = ">=5.2.3" },
-    { name = "unstructured", extras = ["docx", "pdf"], specifier = ">=0.21.5" },
-]
-observability = [
-    { name = "opentelemetry-api", specifier = ">=1.40.0" },
-    { name = "opentelemetry-exporter-otlp", specifier = ">=1.40.0" },
-    { name = "opentelemetry-instrumentation-fastapi", specifier = ">=0.61b0" },
-    { name = "opentelemetry-sdk", specifier = ">=1.40.0" },
-]
-ray = [{ name = "ray", extras = ["default"], specifier = ">=2.54.0" }]
 
 [[package]]
 name = "scikit-learn"
