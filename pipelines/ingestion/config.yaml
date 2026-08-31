@@ -23,5 +23,5 @@ graph:
   enforce_schema: true
 
 vector_db:
-  collection_name: "scalable_rag_collection"
+  collection_name: "omnirag_collection"
   distance_metric: "cosine"

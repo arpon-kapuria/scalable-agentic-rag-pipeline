@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     ENV: str = "prod"
     LOG_LEVEL: str = "INFO"
     
-    # Database (Aurora Postgres)
+    # Database (Postgres)
     DATABASE_URL: str  # e.g., postgresql+asyncpg://user:pass@host:5432/db
     
     # Redis (Cache)
@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     # Vector DB (Qdrant)
     QDRANT_HOST: str = "qdrant-service"
     QDRANT_PORT: int = 6333
-    QDRANT_COLLECTION: str = "scalable_rag_collection"
+    QDRANT_COLLECTION: str = "omnirag_collection"
     
     # Graph DB (Neo4j)
     NEO4J_URI: str = "bolt://neo4j-cluster:7687"

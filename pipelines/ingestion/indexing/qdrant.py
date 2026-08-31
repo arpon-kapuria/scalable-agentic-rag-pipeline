@@ -12,7 +12,7 @@ class QdrantIndexer:
     def __init__(self):
         host = os.getenv("QDRANT_HOST", "qdrant-service")   # qdrant-service = internal K8s DNS
         port = int(os.getenv("QDRANT_PORT", 6333))
-        self.collection_name = os.getenv("QDRANT_COLLECTION", "scalable_rag_collection")
+        self.collection_name = os.getenv("QDRANT_COLLECTION", "omnirag_collection")
 
         self.client = QdrantClient(host=host, port=port)
         

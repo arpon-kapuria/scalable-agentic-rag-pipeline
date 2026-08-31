@@ -126,7 +126,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
+.env*
 .venv
 env/
 venv/
@@ -182,3 +182,13 @@ override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
+
+
+
+
+
+
+# personal / docs
+PROGRESS.md
+PROJECT_INSTRUCTIONS.md
+system-design.md

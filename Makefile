@@ -18,11 +18,20 @@ install:
 	uv sync --group api --group dev
 
 # Run Local Development Environment (Docker services)
+# 8GB RAM dev box: never bring up the full stack. Usage: make up PROFILE=core
+# See PROJECT_INSTRUCTIONS.md's profile table for which profiles a given phase needs.
 up:
-	docker compose up -d
+	ifndef PROFILE
+		$(error PROFILE is required, e.g. make up PROFILE=core (see PROJECT_INSTRUCTIONS.md profile table))
+	endif
+		docker compose --profile $(PROFILE) up -d
 
 down:
-	docker compose down
+	ifndef PROFILE
+		docker compose down
+	else
+		docker compose --profile $(PROFILE) down
+	endif
 
 # Run the API locally (Hot Reload)
 dev:
