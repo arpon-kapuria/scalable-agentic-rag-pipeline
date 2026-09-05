@@ -1,7 +1,5 @@
-from qdrant_client import AsyncQdrantClient
+from qdrant_client import AsyncQdrantClient, models
 from services.api.app.config import settings
-
-from qdrant_client.models import VectorParams, Distance
 
 class VectorDBClient:
     """
@@ -12,7 +10,7 @@ class VectorDBClient:
             host=settings.QDRANT_HOST,
             port=settings.QDRANT_PORT,
             # In prod, we might enable gRPC for slightly faster performance
-            prefer_grpc=True 
+            prefer_grpc=False
         )
         self._collections_ready = False
 
@@ -29,37 +27,61 @@ class VectorDBClient:
         collections = await self.client.get_collections()
         existing = {c.name for c in collections.collections}
 
-        # Main RAG collection
+        # Main RAG collection — named vectors: "dense" (bge-large-en-v1.5,
+        # 1024-dim) + "sparse" (FastEmbed's Qdrant/bm25 export), fused via
+        # RRF at query time (see search_hybrid below). Size 1024 matches
+        # the FastEmbed substitute for bge-m3 (see config.py comment —
+        # bge-m3 isn't in FastEmbed's supported model set).
         if settings.QDRANT_COLLECTION not in existing:
             await self.client.create_collection(
                 collection_name=settings.QDRANT_COLLECTION,
-                vectors_config=VectorParams(size=768, distance=Distance.COSINE),
+                vectors_config={"dense": models.VectorParams(size=1024, distance=models.Distance.COSINE)},
+                sparse_vectors_config={"sparse": models.SparseVectorParams()},
             )
 
-        # Semantic cache collection
+        # Semantic cache collection — untouched, Phase 5 (Redis Stack)
+        # replaces this entirely per the locked design; left as-is so
+        # Phase 5 owns the removal, not silently changed here.
         if "semantic_cache" not in existing:
             await self.client.create_collection(
                 collection_name="semantic_cache",
-                vectors_config=VectorParams(size=768, distance=Distance.COSINE),
+                vectors_config=models.VectorParams(size=768, distance=models.Distance.COSINE),
             )
 
         self._collections_ready = True
 
-    async def search(self, query_vector: list[float], limit: int = 5):
+    async def search_hybrid(
+        self,
+        dense_vector: list[float],
+        sparse_vector: dict,
+        corpus_id: str,
+        limit: int = 10,
+        rrf_k: int = 60,
+    ):
         """
-        Performs Semantic Search.
+        Dense + BM25 sparse, fused via Qdrant's native RRF (Query API
+        prefetch + fusion), filtered to one corpus_id — never cross-tenant.
         """
         await self.init_collections()
         response = await self.client.query_points(
-            # Uses approximate Nearest Neighbor with cosine similarity (default search unless mentioned)
             collection_name=settings.QDRANT_COLLECTION,
-            query=query_vector,
+            prefetch=[
+                models.Prefetch(query=dense_vector, using="dense", limit=limit),
+                models.Prefetch(
+                    query=models.SparseVector(indices=sparse_vector["indices"], values=sparse_vector["values"]),
+                    using="sparse",
+                    limit=limit,
+                ),
+            ],
+            query=models.FusionQuery(fusion=models.Fusion.RRF),
+            query_filter=models.Filter(
+                must=[models.FieldCondition(key="corpus_id", match=models.MatchValue(value=corpus_id))]
+            ),
             limit=limit,
-            with_payload=True
+            with_payload=True,
         )
-
         return response.points
-    
+
     # search method for semantic cache searches
     async def search_collection(
         self,
@@ -77,6 +99,25 @@ class VectorDBClient:
             score_threshold=score_threshold
         )
         return response.points
+
+    async def count_distinct_documents(self, corpus_id: str) -> int:
+        """
+        Powers the single-paper vs multi-paper retrieval routing decision
+        (locked design: "single paper -> Qdrant only, multi-paper ->
+        Qdrant + Neo4j"). Scroll is fine at demo scale — a dedicated
+        documents table (Phase 6's corpus/documents endpoint) would be the
+        right answer at real scale, but doesn't exist yet.
+        """
+        await self.init_collections()
+        points, _ = await self.client.scroll(
+            collection_name=settings.QDRANT_COLLECTION,
+            scroll_filter=models.Filter(
+                must=[models.FieldCondition(key="corpus_id", match=models.MatchValue(value=corpus_id))]
+            ),
+            with_payload=["filename"],
+            limit=1000,
+        )
+        return len({p.payload.get("filename") for p in points if p.payload})
 
     async def close(self):
         await self.client.close()

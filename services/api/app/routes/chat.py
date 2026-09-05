@@ -1,7 +1,9 @@
 """
 POST /stream
       ↓
-Check semantic cache → hit? stream cached answer instantly
+Check L1 exact cache (current corpus_version) → hit? stream instantly
+      ↓ miss
+Check L2 semantic cache (RAG-sourced answers only) → hit? stream instantly
       ↓ miss
 Load conversation history from PostgreSQL
       ↓
@@ -11,9 +13,10 @@ Load conversation history from PostgreSQL
       ↓
 Initialize LangGraph agent state
       ↓
-Stream agent events (planner → retriever → responder)
+Stream agent events (planner → retriever/tool → responder)
       ↓
-Save to memory + update cache in background
+Save to memory + write cache (L1 always, L2 if RAG-sourced) +
+before/after comparison if an older-version entry existed
 """
 
 import json
@@ -25,9 +28,10 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from services.api.app.session.dependency import get_corpus_id
-from services.api.app.cache.semantic import SemanticCache, semantic_cache as global_cache
+from services.api.app.cache.redis_cache import RedisCache, redis_cache as global_cache
 from services.api.app.memory.postgres import PostgresMemory, postgres_memory as global_memory
-from services.api.app.clients.ray_llm import RayLLMClient, llm_client as global_llm
+from services.api.app.clients.llm.factory import llm_client as global_llm
+from services.api.app.clients.llm.base import LLMClient
 from services.api.app.agents.graph import agent_app
 from services.api.app.agents.state import AgentState
 from services.api.app.enhancers.query_rewriter import rewrite_query
@@ -38,13 +42,13 @@ logger = logging.getLogger(__name__)
 
 # --- Dependency Providers (DI) ---
 
-def get_semantic_cache() -> SemanticCache:
+def get_cache() -> RedisCache:
     return global_cache
 
 def get_memory() -> PostgresMemory:
     return global_memory
 
-def get_llm_client() -> RayLLMClient:
+def get_llm_client() -> LLMClient:
     return global_llm
 
 # --- Schemas ---
@@ -59,42 +63,72 @@ class ChatRequest(BaseModel):
 
 # --- Routes ---
 
+def _cache_hit_payload(corpus_id: str, entry: dict, cache_hit: str, older_entry: dict | None = None) -> str:
+    payload = {
+        "type": "answer",
+        "content": entry["answer"],
+        "corpus_id": corpus_id,
+        "cache_hit": cache_hit,  # "exact" | "semantic"
+        "tool_used": entry.get("tool_used", ""),
+        "backend_used": entry.get("backend_used", ""),
+        "sources": entry.get("sources", []),
+    }
+    if older_entry:
+        # Locked design: intentional demo feature, not a staleness
+        # workaround — surface both, don't just silently prefer the newer one.
+        payload["previous_answer"] = {
+            "content": older_entry["answer"],
+            "corpus_version": older_entry["corpus_version"],
+            "cached_at": older_entry["cached_at"],
+        }
+    return json.dumps(payload) + "\n"
+
+
 @router.post("/stream")
 async def chat_stream(
     req: ChatRequest,
     background_tasks: BackgroundTasks,
     corpus_id: str = Depends(get_corpus_id),
-    cache: SemanticCache = Depends(get_semantic_cache),
+    cache: RedisCache = Depends(get_cache),
     memory: PostgresMemory = Depends(get_memory),
-    llm: RayLLMClient = Depends(get_llm_client)
+    llm: LLMClient = Depends(get_llm_client)  # unused below — kept for DI/testability; nodes import the global singleton directly
 ):
     """
     Main Chat Endpoint (Streaming).
-    Orchestrates the RAG flow: Cache -> Enhance -> History -> Agent -> Stream.
-
-    Optional enhancements (controlled per request):
-        use_query_rewriter: resolves "it", "they", "that" using conversation history
-        use_hyde: generates a hypothetical document to improve vector similarity search
+    Orchestrates the RAG flow: Cache -> Enhance -> History -> Agent -> Stream -> Cache-write.
     """
     logger.info(f"Chat request for corpus {corpus_id}")
 
-    # 2. Semantic Cache Check (Fast Path)
-    cached_ans = await cache.get_cached_response(req.message)
+    # 1. L1 exact-match (current corpus_version only)
+    exact_hit = await cache.get_exact(corpus_id, req.message)
+    if exact_hit:
+        logger.info(f"L1 exact cache hit for corpus {corpus_id}")
 
-    if cached_ans:
-        logger.info(f"Cache hit for corpus {corpus_id}")
-
-        async def stream_cache():
-            yield json.dumps({
-                "type": "answer",
-                "content": cached_ans,
-                "corpus_id": corpus_id
-            }) + "\n"
+        async def stream_exact():
+            yield _cache_hit_payload(corpus_id, exact_hit, "exact")
 
         background_tasks.add_task(memory.add_message, corpus_id, "user", req.message)
-        background_tasks.add_task(memory.add_message, corpus_id, "assistant", cached_ans)
+        background_tasks.add_task(memory.add_message, corpus_id, "assistant", exact_hit["answer"])
+        return StreamingResponse(stream_exact(), media_type="application/x-ndjson")
 
-        return StreamingResponse(stream_cache(), media_type="application/x-ndjson")
+    # 2. L2 semantic-match (RAG-sourced answers only — see redis_cache.py)
+    semantic_hit = await cache.get_semantic(corpus_id, req.message)
+    if semantic_hit:
+        logger.info(f"L2 semantic cache hit for corpus {corpus_id}")
+
+        async def stream_semantic():
+            yield _cache_hit_payload(corpus_id, semantic_hit, "semantic")
+
+        background_tasks.add_task(memory.add_message, corpus_id, "user", req.message)
+        background_tasks.add_task(memory.add_message, corpus_id, "assistant", semantic_hit["answer"])
+        return StreamingResponse(stream_semantic(), media_type="application/x-ndjson")
+
+    # No current-version hit — check for a STALE entry (older corpus_version)
+    # now, before running the pipeline, so we can offer the before/after
+    # comparison once the fresh answer is ready (locked design: run fresh,
+    # cache the new result, return BOTH).
+    older_versions = await cache.get_all_versions(corpus_id, req.message)
+    stale_entry = older_versions[0] if older_versions else None
 
     # 3. Load Conversation History
     history_objs = await memory.get_history(corpus_id, limit=6)
@@ -138,18 +172,22 @@ async def chat_stream(
         current_query=enhanced_query,   # ← enhanced query for retrieval
         documents=[],
         plan=[],
-        action=""
+        action="",
+        corpus_id=corpus_id,
+        tool_used="",
+        backend_used="",
+        sources=[],
     )
 
     # 7. Streaming Generator
     async def event_generator() -> AsyncGenerator[str, None]:
         final_answer = ""
+        final_tool_used = ""
+        final_backend_used = ""
+        final_sources: list[str] = []
 
         try:
-            async for event in agent_app.astream(
-                initial_state,
-                config={"configurable": {"llm": llm, "corpus_id": corpus_id}}
-            ):
+            async for event in agent_app.astream(initial_state):
                 node_name = list(event.keys())[0]
                 node_data = event[node_name]
 
@@ -161,23 +199,43 @@ async def chat_stream(
                     "info": f"Completed step: {node_name}"
                 }) + "\n"
 
+                if "tool_used" in node_data and node_data["tool_used"]:
+                    final_tool_used = node_data["tool_used"]
+                if "backend_used" in node_data and node_data["backend_used"]:
+                    final_backend_used = node_data["backend_used"]
+                if "sources" in node_data and node_data["sources"]:
+                    final_sources = node_data["sources"]
+
                 # Capture final answer from responder node
                 if node_name == "responder":
                     if "messages" in node_data and node_data["messages"]:
                         ai_msg = node_data["messages"][-1]
                         final_answer = ai_msg.get("content", "")
 
-                        yield json.dumps({
+                        payload = {
                             "type": "answer",
                             "content": final_answer,
-                            "corpus_id": corpus_id
-                        }) + "\n"
+                            "corpus_id": corpus_id,
+                            "cache_hit": "none",
+                            "tool_used": final_tool_used,
+                            "backend_used": final_backend_used,
+                            "sources": final_sources,
+                        }
+                        if stale_entry:
+                            payload["previous_answer"] = {
+                                "content": stale_entry["answer"],
+                                "corpus_version": stale_entry["corpus_version"],
+                                "cached_at": stale_entry["cached_at"],
+                            }
+                        yield json.dumps(payload) + "\n"
 
             # 8. Post-Processing
             if final_answer:
                 await memory.add_message(corpus_id, "user", req.message)
                 await memory.add_message(corpus_id, "assistant", final_answer)
-                await cache.set_cached_response(req.message, final_answer)
+                await cache.set_exact(
+                    corpus_id, req.message, final_answer, final_sources, final_tool_used, final_backend_used
+                )
 
         except Exception as e:
             logger.error(f"Error in chat stream: {e}", exc_info=True)

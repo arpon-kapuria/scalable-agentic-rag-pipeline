@@ -1,39 +1,29 @@
 """
-This component:
-    - Runs as a Ray worker
-    - Sends batches of text to an embedding API
-    - Uses GPU service via HTTP
-    - Adds vectors to batch data
-    - Prepares chunks for vector database storage
-    - Decouples CPU ingestion from GPU embedding computation
+In-process embedding — replaces the old BatchEmbedder's HTTP call to a
+Ray Serve endpoint that's frozen until Phase 11 and was never deployed
+locally. Uses the same EmbeddingClient (FastEmbed primary, OpenRouter
+fallback) the query-time chat path uses — "same code, both local and
+cloud" per the locked design, not two separate embedding implementations.
+
+Dense embedding goes through the async failover client (asyncio.run()
+per batch — see graph/extractor.py for the same sync/async bridging
+rationale). Sparse (BM25) stays direct/sync — FastEmbed's BM25 export is
+a lightweight tokenizer-based computation, not a model inference likely
+to fail, so no failover path is needed for it.
 """
 
-import httpx
-from typing import Dict, Any
+import asyncio
+from typing import Any, Dict
+
+from models.embeddings.fastembed_client import fastembed_client
+from services.api.app.clients.embedding import embedding_client
+
 
 class BatchEmbedder:
-    """
-    Callable Class for Ray Data.
-    Maintains a session for efficiency.
-    """
-    def __init__(self):
-        # Point to the internal K8s service DNS
-        self.endpoint = "http://ray-serve-embed:8000/embed" # hardcode internal DNS for Ray Service
-        self.client = httpx.Client(timeout=30.0)
-    
+    """Callable Class for Ray Data — one instance per actor, embed models load once."""
+
     def __call__(self, batch: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Receives a batch of text chunks.
-        Returns the batch with 'embedding' field added.
-        """
-        try:
-            response = self.client.post(
-                self.endpoint,
-                json={"texts": batch["texts"], "task_type": "document"}
-            )
-            batch["vector"] = response.json()["embeddings"]
-            return batch
-        
-        except Exception as e:
-            # In Ray, raising exception triggers retry logic automatically
-            raise e
+        texts = list(batch["text"])
+        batch["dense_vector"] = asyncio.run(embedding_client.embed_documents(texts))
+        batch["sparse_vector"] = fastembed_client.embed_sparse(texts)
+        return batch

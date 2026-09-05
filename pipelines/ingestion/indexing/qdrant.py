@@ -1,51 +1,53 @@
 import os
 import uuid
-from typing import Any, Dict, List
+from typing import Any, Dict
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
 
 
 class QdrantIndexer:
     """
-    Writes embedding vectors into the Qdrant vector database
+    Ray Data terminal sink — same callable-class shape as BatchEmbedder/
+    GraphExtractor (map_batches, not write_datasource: QdrantIndexer isn't
+    a ray.data.Datasource, and the old write_datasource() call was dead —
+    never actually executes any Ray write path). Batches are column-
+    oriented dicts (dict of lists), matching what BatchEmbedder produces,
+    not row-lists.
     """
     def __init__(self):
         host = os.getenv("QDRANT_HOST", "qdrant-service")   # qdrant-service = internal K8s DNS
         port = int(os.getenv("QDRANT_PORT", 6333))
         self.collection_name = os.getenv("QDRANT_COLLECTION", "omnirag_collection")
-
         self.client = QdrantClient(host=host, port=port)
-        
-    def write(self, batch: List[Dict[str, Any]]):
-        """
-        Uploads points in batch.
-        """
-        points = []
 
-        for row in batch:
-            # Skip if embedding failed
-            if "vector" not in row:
+    def __call__(self, batch: Dict[str, Any]) -> Dict[str, Any]:
+        """Every point carries corpus_id — every query-time search filters
+        on this field, so a missing/wrong value here is a cross-tenant
+        data leak, not just a bad chunk."""
+        points = []
+        n = len(batch.get("text", []))
+
+        for i in range(n):
+            if "dense_vector" not in batch or i >= len(batch["dense_vector"]):
                 continue
 
-            # Construct Payload (Metadata)
+            metadata = batch["metadata"][i]
             payload = {
-                "text": row["text"],
-                "filename": row["metadata"]["filename"],
-                "page": row["metadata"].get("page_number", 0)
+                "text": batch["text"][i],
+                "filename": metadata.get("filename"),
+                "page": metadata.get("page", 0),
+                "section": metadata.get("section", "Document"),
+                "corpus_id": batch["corpus_id"][i],
             }
 
-            # Create Point
-            points.append(
-                models.PointStruct(
-                    id = str(uuid.uuid4()), # Generate unique ID for the vector
-                    vector = row["vector"],
-                    payload = payload
-                )
-            )
+            vector = {"dense": batch["dense_vector"][i]}
+            if "sparse_vector" in batch:
+                sparse = batch["sparse_vector"][i]
+                vector["sparse"] = models.SparseVector(indices=sparse["indices"], values=sparse["values"])
+
+            points.append(models.PointStruct(id=str(uuid.uuid4()), vector=vector, payload=payload))
 
         if points:
-            # Upsert is atomic
-            self.client.upsert(
-                collection_name=self.collection_name,
-                points=points
-            )
+            self.client.upsert(collection_name=self.collection_name, points=points)
+
+        return batch

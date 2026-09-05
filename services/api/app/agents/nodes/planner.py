@@ -1,7 +1,7 @@
 import json
 import logging
 from services.api.app.agents.state import AgentState
-from services.api.app.clients.ray_llm import llm_client
+from services.api.app.clients.llm.factory import llm_client
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +46,8 @@ async def planner_node(state: AgentState) -> dict:
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": user_query}
             ],
-            temperature=0.0 # Deterministic planning
+            temperature=0.0, # Deterministic planning
+            json_mode=True
         )
         
         # Parse JSON

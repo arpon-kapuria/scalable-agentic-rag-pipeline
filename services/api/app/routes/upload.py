@@ -1,19 +1,16 @@
 import asyncio
-import boto3
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from services.api.app.config import settings
 from services.api.app.session.dependency import get_corpus_id
+from libs.utils.s3_client import get_s3_client
 import uuid
 
 router = APIRouter()
 
-# Initialize S3 Client (boto3 is synchronous, but presigning is fast/CPU-bound)
-s3_client = boto3.client(
-    "s3",
-    region_name=settings.AWS_REGION,
-    # Use internal VPC endpoint if available, else public
-)
+# boto3 is synchronous, but presigning is fast/CPU-bound — fine to call via
+# asyncio.to_thread below rather than needing an async S3 SDK.
+s3_client = get_s3_client()
 
 # Schemas
 class PresignedURLRequest(BaseModel):

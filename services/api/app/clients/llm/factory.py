@@ -28,6 +28,13 @@ class FailoverLLMClient(LLMClient):
     def __init__(self, primary: LLMClient, backup: LLMClient):
         self.primary = primary
         self.backup = backup
+        # Inspectable after a chat_completion() call, not part of the
+        # LLMClient interface — adding a return-value/metadata contract
+        # would ripple through every caller (planner, responder, graph
+        # extractor, tool nodes, enhancers). Only responder.py currently
+        # needs this (Phase 5's backend_used cache field), so an
+        # attribute is the lower-blast-radius choice here.
+        self.last_backend_used: str = ""
 
     async def start(self):
         await self.primary.start()
@@ -39,10 +46,14 @@ class FailoverLLMClient(LLMClient):
 
     async def chat_completion(self, messages, temperature=0.3, json_mode=False) -> str:
         try:
-            return await self.primary.chat_completion(messages, temperature, json_mode)
+            result = await self.primary.chat_completion(messages, temperature, json_mode)
+            self.last_backend_used = self.primary.__class__.__name__
+            return result
         except ModelExhaustedError as e:
             logger.warning(f"Primary backend exhausted, failing over to backup: {e}")
-            return await self.backup.chat_completion(messages, temperature, json_mode)
+            result = await self.backup.chat_completion(messages, temperature, json_mode)
+            self.last_backend_used = self.backup.__class__.__name__
+            return result
 
 
 def build_llm_client() -> LLMClient:

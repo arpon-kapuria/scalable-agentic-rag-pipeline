@@ -28,9 +28,20 @@ class Settings(BaseSettings):
     NEO4J_USER: str = "neo4j"
     NEO4J_PASSWORD: str # Sensitive
     
-    # AWS S3 (Documents)
+    # AWS S3 (Documents) / MinIO (local S3-API-compatible substitute)
     AWS_REGION: str = "us-east-1"
     S3_BUCKET_NAME: str
+    # None = real AWS. Set to MinIO's local URL for dev/demo — same boto3
+    # client code path either way (libs/utils/s3_client.py).
+    S3_ENDPOINT_URL: Optional[str] = None
+    # Was in .env.example but never declared here — silently ignored by
+    # pydantic-settings' extra="ignore" until s3_client.py needed them.
+    AWS_ACCESS_KEY_ID: Optional[str] = None
+    AWS_SECRET_ACCESS_KEY: Optional[str] = None
+
+    # Ray Job Submission API (ingestion cluster — local head in dev/demo,
+    # real multi-node cluster at prod scale; same JobSubmissionClient call)
+    RAY_ADDRESS: str = "http://localhost:8265"
     
     # Ray Serve (Internal LLM/Embeddings) — frozen until Phase 11
     RAY_LLM_ENDPOINT: str = "http://llm-service:8000/llm"
@@ -66,6 +77,42 @@ class Settings(BaseSettings):
     # Session & corpus isolation (Phase 2). No login — corpus_id is issued
     # via httpOnly cookie; this is the sliding-window inactivity TTL for it.
     SESSION_TTL_MINUTES: int = 60
+
+    # --- Embeddings + Reranker (Phase 3+4) ---
+    # Local primary: FastEmbed (ONNX, CPU, $0), same code path for both
+    # query-time (FastAPI) and ingestion-time (Ray worker) embedding.
+    # bge-m3 (originally locked) isn't in FastEmbed's supported model set
+    # (checked against fastembed 0.8.0 — no multi-vector bge-m3 export
+    # exists there) — bge-large-en-v1.5 is the closest-quality substitute
+    # FastEmbed actually ships. 1024-dim; Qdrant collection sized to match.
+    FASTEMBED_MODEL: str = "BAAI/bge-large-en-v1.5"
+    FASTEMBED_RERANKER_MODEL: str = "BAAI/bge-reranker-base"
+    # Fallback on local failure — OpenRouter free-tier models, reuses
+    # OPENROUTER_API_KEY from the LLM backend config above.
+    OPENROUTER_EMBED_MODEL: str = "nvidia/llama-nemotron-embed-vl-1b-v2:free"
+    OPENROUTER_RERANK_MODEL: str = "nvidia/llama-nemotron-rerank-vl-1b-v2:free"
+
+    # Retrieval routing: corpora with more than this many distinct
+    # documents also query Neo4j (multi-hop/citation questions), not just
+    # Qdrant — a single-paper corpus has no graph worth querying.
+    GRAPH_SEARCH_MIN_DOCUMENTS: int = 2
+
+    # RRF fusion + reranking
+    RRF_K: int = 60  # standard RRF damping constant
+    RERANK_TOP_N: int = 5  # final chunk count returned to the LLM after rerank
+
+    # --- Caching (Phase 5, Redis Stack) ---
+    # L1 exact-match always applies. L2 semantic-match (RediSearch vector
+    # KNN) only applies to RAG-sourced answers (vector_search/graph_search)
+    # — never sandbox/web_search, per the locked design (staleness/
+    # precision risk for those).
+    SEMANTIC_CACHE_THRESHOLD: float = 0.85
+    CACHE_VERSIONS_KEPT: int = 2  # historical corpus_version entries kept per cache key (before/after comparison)
+
+    # PDF image description (Phase 3) — one vision call per extracted
+    # figure via OpenRouter, gated so a broken key doesn't fail ingestion.
+    PDF_DESCRIBE_IMAGES: bool = True
+    OPENROUTER_VISION_MODEL: str = "nvidia/llama-nemotron-embed-vl-1b-v2:free"
 
     @field_validator(
         "GROQ_MODELS", "OPENROUTER_MODELS", "OLLAMA_MODELS",

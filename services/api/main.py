@@ -3,12 +3,12 @@ from fastapi import FastAPI
 from services.api.app.clients.neo4j import neo4j_client
 from services.api.app.clients.qdrant import qdrant_client
 from services.api.app.clients.llm.factory import llm_client
-from services.api.app.clients.ray_embed import embed_client
 from services.api.app.cache.redis import redis_client
+from services.api.app.cache.redis_cache import redis_cache
 from services.api.app.memory.models import Base, ChatHistory, Feedback
 from services.api.app.memory.postgres import engine
 from services.api.app.session.cleanup import start_cleanup_task, stop_cleanup_task
-from services.api.app.routes import chat, upload, health, feedback, session
+from services.api.app.routes import chat, upload, health, feedback, session, webhooks
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -26,7 +26,6 @@ async def lifespan(app: FastAPI):
     await neo4j_client.connect()
     await redis_client.connect()
     await llm_client.start()
-    await embed_client.start()
 
     # NOTE: qdrant_client.init_collections() is intentionally NOT called
     # here — it's lazy now (see clients/qdrant.py), connecting on first
@@ -43,8 +42,8 @@ async def lifespan(app: FastAPI):
     await neo4j_client.close()
     await redis_client.close()
     await llm_client.close()
-    await embed_client.close()
     await qdrant_client.close()
+    await redis_cache.close()
 
 # FastAPI Application
 app = FastAPI(title="OmniRAG - Scalable Agentic RAG Platform", version="1.0.0", lifespan=lifespan)
@@ -55,6 +54,7 @@ app.include_router(chat.router, prefix="/api/v1/chat", tags=["Chat"])
 app.include_router(upload.router, prefix="/api/v1/upload", tags=["Upload"])
 app.include_router(health.router, prefix="/health", tags=["Health"])
 app.include_router(feedback.router, prefix="/api/v1/feedback", tags=["Feedback"])
+app.include_router(webhooks.router, prefix="/api/v1/webhooks", tags=["Webhooks"])
 
 if __name__ == "__main__":
     import uvicorn

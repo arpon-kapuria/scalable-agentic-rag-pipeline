@@ -19,11 +19,12 @@ services:
   # Needed as early as Phase 2 (session storage), not just Phase 5 (caching) — same
   # container, two uses, brought up once under one profile.
   redis:
-    image: redis:7-alpine
+    image: redis/redis-stack-server:7.4.0-v3
     container_name: omnirag-redis
     profiles: ["cache"]
     ports:
       - "6379:6379"
+    mem_limit: 512m
 
   # 3. Qdrant (Vector DB) — profile: vector
   qdrant:
@@ -37,13 +38,13 @@ services:
 
   # 4. Neo4j (Graph DB) — profile: graph
   neo4j:
-    image: neo4j:6.1.0
+    image: neo4j:5.26
     container_name: omnirag-neo4j
     profiles: ["graph"]
     environment:
       # Username stays "neo4j" (built-in initial-admin convention); password is ours.
       NEO4J_AUTH: neo4j/omnirag_dev_password
-      NEO4J_dbms_memory_pagecache_size: 1G
+      NEO4J_dbms_memory_pagecache_size: 512M 
     ports:
       - "7474:7474" # HTTP
       - "7687:7687" # Bolt
@@ -55,7 +56,7 @@ services:
     image: minio/minio
     container_name: omnirag-minio
     profiles: ["storage"]
-    command: server /data
+    command: server /data --console-address ":9001"
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -64,9 +65,96 @@ services:
       MINIO_ROOT_PASSWORD: omnirag_dev_password
     volumes:
       - omnirag_minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 5b. One-shot: bucket + webhook event-notification setup (profile: storage)
+  # MinIO's webhook notification target POSTs the same S3-event schema AWS
+  # uses, so s3_event_handler.py's handle_s3_event() works for both — this
+  # just wires MinIO to call the API's receiver route on every upload.
+  # host.docker.internal reaches the host's FastAPI process (`make dev`
+  # runs uvicorn on the host, not in a container) from inside this
+  # container; extra_hosts makes that resolve on Linux too, not just
+  # Docker Desktop.
+  minio-init:
+    image: minio/mc
+    container_name: omnirag-minio-init
+    profiles: ["storage"]
+    depends_on:
+      minio:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    entrypoint: >
+      sh -c '
+      mc alias set local http://minio:9000 omnirag_admin omnirag_dev_password &&
+      mc mb --ignore-existing local/omnirag-corpus &&
+      until mc admin config set local notify_webhook:1 endpoint="http://host.docker.internal:8000/api/v1/webhooks/minio"; do
+        echo "FastAPI webhook not ready; retrying in 3 seconds...";
+        sleep 3;
+      done &&
+      echo "Webhook configuration successful."
+      '
+
+  # 6. Ray head + worker (ingestion cluster) — profile: ingestion
+  # Job Submission API (port 8265) is what s3_event_handler.py's
+  # JobSubmissionClient talks to; dashboard on 8265 too, GCS on 6379
+  # (separate from the Redis container's 6379 — different bridge network,
+  # no actual port collision, but mapped to a different host port to avoid
+  # any confusion when both profiles are up).
+  ray-head:
+    build:
+      context: .
+      dockerfile: deploy/ray/Dockerfile.local
+    container_name: omnirag-ray-head
+    profiles: ["ingestion"]
+    command: ray start --head --dashboard-host 0.0.0.0 --port 6380 --dashboard-port 8265 --block
+    ports:
+      - "8265:8265"
+      - "6380:6380"
+    mem_limit: 2g
+    cpus: 2.0
+    volumes:
+      - omnirag_ray_model_cache:/home/ray/.cache/huggingface
+    env_file:
+      - .env
+    environment:
+      QDRANT_HOST: qdrant
+      NEO4J_URI: bolt://neo4j:7687
+      REDIS_URL: redis://redis:6379/0
+      S3_ENDPOINT_URL: http://minio:9000
+
+  ray-worker:
+    build:
+      context: .
+      dockerfile: deploy/ray/Dockerfile.local
+    container_name: omnirag-ray-worker
+    profiles: ["ingestion"]
+    command: ray start --address=ray-head:6380 --block
+    depends_on:
+      - ray-head
+    # Capped low — this IS the "min/max workers, capped" from the locked
+    # design (see main.py's map_batches concurrency=(1,2) comment for how
+    # autoscaling actually happens on a single-host cluster: actor-pool
+    # concurrency within this fixed CPU budget, not container provisioning).
+    mem_limit: 4g
+    cpus: 2.0
+    volumes:
+      - omnirag_ray_model_cache:/home/ray/.cache/huggingface
+    env_file:
+      - .env
+    environment:
+      QDRANT_HOST: qdrant
+      NEO4J_URI: bolt://neo4j:7687
+      REDIS_URL: redis://redis:6379/0
+      S3_ENDPOINT_URL: http://minio:9000
 
 volumes:
   omnirag_pg_data:
   omnirag_qdrant_data:
   omnirag_neo4j_data:
   omnirag_minio_data:
+  omnirag_ray_model_cache:

@@ -29,11 +29,11 @@ async def tool_node(state: AgentState) -> dict:
     
     if tool_name == "graph_search":
         logger.info(f"Executing Graph Search: {tool_input}")
-        result = await search_graph_tool(tool_input)
+        result = await search_graph_tool(tool_input, state["corpus_id"])
 
     elif tool_name == "vector_search":
         logger.info(f"Executing Vector Search: {tool_input}")
-        result = await search_vector_tool(tool_input)
+        result = await search_vector_tool(tool_input, state["corpus_id"])
     
     elif tool_name == "web_search":
         logger.info(f"Executing Web Search: {tool_input}")
@@ -46,9 +46,14 @@ async def tool_node(state: AgentState) -> dict:
     else:
         result = "Unknown tool requested."
 
-    # Return the observation
+    # Return the observation. tool_used marks which tool actually ran —
+    # Phase 5's L2 semantic cache is gated on this: only
+    # vector_search/graph_search are cache-eligible there, web_search
+    # (staleness) and sandbox (numeric precision) are never L2-cached,
+    # matching the locked design.
     return {
         "messages": [
             {"role": "user", "content": f"Tool Output: {result}"}
-        ]
+        ],
+        "tool_used": tool_name,
     }

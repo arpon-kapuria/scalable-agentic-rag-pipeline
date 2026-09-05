@@ -1,17 +1,26 @@
-.PHONY: help install dev up down deploy infra test
+.PHONY: help install dev up down build upb stop restart down-all deploy infra test lint fmt
 
 help:
 	@echo "	 RAG Platform Commands:"
-	@echo "  Usage: make <target>"
 	@echo "  make install    - Install Python dependencies"
-	@echo "  make up         - Start local DBs (Docker)"
-	@echo "  make down       - Stop local DBs"
 	@echo "  make dev        - Run FastAPI server locally"
+	@echo ""
+	@echo "  --- Docker (project convention: explicit PROFILE) ---"
+	@echo "  make up PROFILE=core,cache,...   - Start containers (no build)"
+	@echo "  make down PROFILE=...            - Remove containers for these profiles (or all if omitted)"
+	@echo ""
+	@echo "  --- Convenience (personal workflow, defaults to your current phase's profiles) ---"
+	@echo "  make build       - Build/rebuild images that need it (ray-head, ray-worker)"
+	@echo "  make upb         - Build + start in one go"
+	@echo "  make stop        - Stop containers, KEEP volumes/data (safe, quick, resume later with 'make up')"
+	@echo "  make restart     - Stop then start again (same profiles)"
+	@echo "  make down-all    - Remove ALL containers, KEEP volumes (heavier than stop, still non-destructive)"
+	@echo ""
 	@echo "  make infra      - Apply Terraform"
 	@echo "  make deploy     - Deploy to AWS EKS via Helm"
-	@echo "  lint          	 - Run ruff linter"
-	@echo "  fmt             - Format code with ruff"
-	@echo "  test            - Run test suite"
+	@echo "  make lint       - Run ruff linter"
+	@echo "  make fmt        - Format code with ruff"
+	@echo "  make test       - Run test suite"
 
 # Install dependencies using uv
 install:
@@ -46,6 +55,42 @@ ifndef PROFILE
 else
 	docker compose $(profile_flags) down
 endif
+
+# --- Convenience targets below: personal workflow only, not a project convention ---
+# Default profile set = whatever phase you're currently testing. Override any
+# target with PROFILE=... same as the targets above.
+#
+# PROFILE ?= is target-scoped (only applies to build/upb/stop/restart and
+# their recipes), NOT a global default -- a global default here would
+# silently defeat up/down's "PROFILE is required" check above, which was a
+# deliberate Phase 0 fix (bare `make up` used to boot the whole stack by
+# accident). Convenience must not weaken that safety property.
+DEFAULT_PROFILES := core,cache,storage,ingestion,vector,graph
+
+build upb stop restart: PROFILE ?= $(DEFAULT_PROFILES)
+
+# Only ray-head/ray-worker actually need building (custom Dockerfile);
+# everything else uses stock images and 'up' alone is enough for them.
+build:
+	docker compose build ray-head ray-worker
+
+upb: build
+	docker compose $(profile_flags) up -d
+
+# Stops containers but leaves them + volumes in place (fast resume via
+# 'make up' later, no re-registering MinIO webhook/event rules, no
+# re-pulling images). This is what you want for "pause for the day."
+stop:
+	docker compose $(profile_flags) stop
+
+restart: stop
+	docker compose $(profile_flags) up -d
+
+# Removes containers (frees more RAM/CPU than 'stop') but keeps named
+# volumes -- Qdrant/Neo4j/MinIO data survives, only re-run 'make upb'
+# to come back, no data loss. NOT the same as 'docker compose down -v'.
+down-all:
+	docker compose down
 
 # Run the API locally (Hot Reload)
 dev:
